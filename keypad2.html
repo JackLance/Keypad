@@ -13,7 +13,7 @@ canvas = document.getElementById ('gameCanvas' );
 ctx = canvas.getContext ('2d' );
 
 rad = 15;
-pieces = [{x: 123, y:456}, {x: 300, y:300}, {x: 567, y:500}, {x: 345, y:100}, {x: 12, y:345}, {x: 500, y:200}, {x: 123, y:123},]
+pieces = [{x: 600, y:700}, {x: 500, y:300}, {x: 300, y:500}, {x: 200, y:200}, {x: 100, y:600}, {x: 400, y:100}]
 keypad = {x: 800, y:200, img:new Image()}
 
 pieces.forEach(piece => {piece.img = new Image()})
@@ -28,12 +28,12 @@ const image = new Image()
  const complete = new Image();
  complete.src = "complete.png"
 
-pieces[0].img.src = "jig6.png";
-pieces[1].img.src = "jig2.png";
-pieces[2].img.src = "jig3.png";
-pieces[3].img.src = "jig4.png";
-pieces[4].img.src = "jig5.png";
-pieces[5].img.src = "jig1.png";
+pieces[0].img.src = "jig21.png";
+pieces[1].img.src = "jig22.png";
+pieces[2].img.src = "jig23.png";
+pieces[3].img.src = "jig24.png";
+pieces[4].img.src = "jig25.png";
+pieces[5].img.src = "jig26.png";
 keypad.img.src = "pad.png";
 keypad.img.addEventListener("load", (e) => {
     keypad.img.width/=4;
@@ -43,8 +43,8 @@ keypad.img.addEventListener("load", (e) => {
 
 pieces.forEach(piece => {
 piece.img.addEventListener("load", (e) => {
-    piece.img.width/=2;
-    piece.img.height/=2;
+    piece.img.width/=1.5;
+    piece.img.height/=1.5;
   draw();
 });
 })
@@ -122,7 +122,7 @@ canvas.onclick = e=>{
        if(asd[1] < 0.75 || n == 0){
         s = s[1] + s[2] + s[3] + s[4] + s[5] + n
         if(s[0] != '?'){
-            if(s != "573941"){
+            if(s != "634781"){
                 codestate = "wrong"
             }else{
                 codestate = "right"
