@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+
+    <div>
+<canvas id="gameCanvas" width=1200 height=800></canvas>
+</div>
+<script>
+
+document.addEventListener('contextmenu', event => event.preventDefault());
+
+
+canvas = document.getElementById ('gameCanvas' );
+ctx = canvas.getContext ('2d' );
+
+rad = 15;
+pieces = [{x: 840, y:224}, {x: 965, y:224}, {x: 1087, y:224}, {x: 840, y:345}, {x: 965, y:345}, {x: 1087, y:345}, {x: 840, y:466}, {x: 965, y:466}, {x: 1087, y:466}, {x: 962, y:605}]
+keypad = {x: 800, y:200, img:new Image()}
+
+pieces.forEach(piece => {piece.img = new Image()})
+selected = null;
+offset = [0,0]
+distance = (a, b, c, d) => {return Math.sqrt((a-c)*(a-c) + (b-d)*(b-d))};
+
+const image = new Image()
+
+ s = "??????"
+
+ const complete = new Image();
+ complete.src = "complete.png"
+
+pieces[0].img.src = "jig41.png";
+pieces[1].img.src = "jig42.png";
+pieces[2].img.src = "jig43.png";
+pieces[3].img.src = "jig44.png";
+pieces[4].img.src = "jig45.png";
+pieces[5].img.src = "jig46.png";
+pieces[6].img.src = "jig47.png";
+pieces[7].img.src = "jig48.png";
+pieces[8].img.src = "jig49.png";
+pieces[9].img.src = "jig40.png";
+
+keypad.img.src = "pad4.png";
+keypad.img.addEventListener("load", (e) => {
+    keypad.img.width/=4;
+    keypad.img.height/=4;
+  draw();
+});
+
+pieces.forEach(piece => {
+piece.img.addEventListener("load", (e) => {
+    piece.img.width/=3;
+    piece.img.height/=3;
+  draw();
+});
+})
+
+drawmore = true;
+
+function draw(){
+    if(!drawmore) return;
+    ctx.fillStyle = "#444444";
+    ctx.fillRect(0, 0, 1200, 1200);
+    ctx.fillStyle = "#666666";
+    ctx.fillRect(780, 0, 1200, 1200);
+    ctx.drawImage(keypad.img, keypad.x, keypad.y, keypad.img.width, keypad.img.height);
+    ctx.fillStyle = "#ffffff";
+    if(codestate == "wrong") ctx.fillStyle = "#662222";
+    if(codestate == "right") ctx.fillStyle = "#226622";
+    ctx.font = "bold 100px monospace";
+    ctx.fillText(s, keypad.x+20, keypad.y-15)
+    pieces.reverse();
+    pieces.forEach(piece => {
+       
+      
+        /*ctx.strokeStyle = "#462c4b"
+        if(piece == selected){
+            ctx.strokeStyle = "#962c4b"
+        }
+        ctx.beginPath();
+        ctx.arc(piece.x, piece.y, rad + 1, 0, 2 * Math.PI);
+        ctx.lineWidth = 2;
+         
+        ctx.stroke();
+        ctx.fill();
+        */
+        ctx.drawImage(piece.img, piece.x, piece.y, piece.img.width, piece.img.height);
+       
+    });
+
+
+    pieces.reverse();
+
+
+}
+
+
+function getPixel(img, x, y) {
+    return [1,1,1,x > 0 && y > 0 && x < img.width && y < img.height];
+    let canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    canvas.getContext('2d').drawImage(img, x, y, 1, 1, 0, 0, 1, 1);;
+    let pixelData = canvas.getContext('2d').getImageData(0, 0, 1, 1).data;
+    console.log(pixelData)
+    return pixelData;   
+}
+
+codestate = "question"
+
+function win(){
+    ctx.drawImage(complete, 0, 0);
+    drawmore = false;
+}
+
+dontclear = false;
+
+canvas.onmousedown = e=>{
+    dontclear = true;
+  for(var i = 0; i<pieces.length; i++){
+    piece = pieces[i];
+    if(selected == piece) {
+        selected = null;
+        draw();
+        return;
+    }
+ 
+  }
+
+  for(var i = 0; i<pieces.length; i++){
+        piece = pieces[i];
+
+     if(getPixel(piece.img, e.offsetX - piece.x,e.offsetY - piece.y)[3] != 0){
+      
+       selected = piece;
+       offset = [e.offsetX - piece.x, e.offsetY - piece.y]
+       pieces = pieces.filter(p => p !== piece);
+        pieces.unshift(piece);
+
+       draw();
+        return;
+    }
+  }
+  
+   if(getPixel(keypad.img, e.offsetX - keypad.x,e.offsetY - keypad.y)[3] != 0){
+       if(codestate != "question") return;
+     
+       asd = [(e.offsetX - keypad.x)/keypad.img.width, (e.offsetY - keypad.y)/keypad.img.height]
+       var n=1;
+       if(asd[0] > 0.33) n++;
+       if(asd[0] > 0.66) n++;
+        if(asd[1] > 0.25) n+=3;
+       if(asd[1] > 0.5) n+=3;
+       if(asd[1] > 0.75) n-=8;
+       if(asd[1] < 0.75 || n == 0){
+        s = s[1] + s[2] + s[3] + s[4] + s[5] + n
+        if(s[0] != '?'){
+            if(s != "607435"){
+                codestate = "wrong"
+            }else{
+                codestate = "right"
+            }
+            setTimeout(()=>{if(codestate=="wrong"){s="??????"; codestate="question"; draw()}else win()}, 800)
+        }
+       }
+       draw();
+        return;
+    }
+
+
+}
+
+canvas.onmouseup = e=>{
+     if(!dontclear) selected = null;
+}
+
+
+
+canvas.onmousemove = e => {
+    dontclear = false;
+    if(!selected) return;
+
+    selected.x = Math.min(Math.max(0, e.offsetX - offset[0]), 1200-selected.img.width)
+    selected.y = Math.min(Math.max(0,e.offsetY - offset[1]), 800-selected.img.height);
+
+    draw();
+}
+
+
+draw();
+
+</script>
+</html>
