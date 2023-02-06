@@ -13,7 +13,7 @@ canvas = document.getElementById ('gameCanvas' );
 ctx = canvas.getContext ('2d' );
 
 rad = 15;
-pieces = [{x: 850, y:228}, {x: 960, y:225}, {x: 1083, y:231}, {x: 837, y:341}, {x: 953, y:342}, {x: 1093, y:348}, {x: 838, y:465}, {x: 965, y:465}, {x: 1088, y:473}, {x: 968, y:594}]
+pieces = [{x: 850, y:228}, {x: 960, y:225}, {x: 1083, y:231}, {x: 837, y:341}, {x: 953, y:342}, {x: 1093, y:348}, {x: 837, y:465}, {x: 965, y:465}, {x: 1088, y:473}, {x: 968, y:594}]
 keypad = {x: 800, y:200, img:new Image()}
 
 pieces.forEach(piece => {piece.img = new Image()})
@@ -67,7 +67,7 @@ function draw(){
     if(codestate == "wrong") ctx.fillStyle = "#662222";
     if(codestate == "right") ctx.fillStyle = "#226622";
     ctx.font = "bold 100px monospace";
-    ctx.fillText(s, keypad.x+25, keypad.y-5)
+    ctx.fillText(s, keypad.x+50, keypad.y-15)
     pieces.reverse();
     pieces.forEach(piece => {
        
