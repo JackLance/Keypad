@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en" style = "margin:0">
+<body style = "margin:0">
+    <div style = "margin:0">
+<canvas id="gameCanvas"></canvas>
+</div>
+</body>
+<script>
+
+document.addEventListener('contextmenu', event => event.preventDefault());
+
+
+canvas = document.getElementById ('gameCanvas' );
+ctx = canvas.getContext ('2d' );
+
+
+
+ const complete = new Image();
+ complete.src = "complete.png"
+
+distance = (a, b, c, d) => {return Math.sqrt((a-c)*(a-c) + (b-d)*(b-d))};
+
+clockwise = (a, b, c, d, e, f) => { return (c-a) * (f-b) - (e-a) * (d-b) > 0}
+
+crossing = (a, b, c, d, e, f, g, h) => {return (clockwise(a, b, e, f, g, h) != clockwise(c, d, e, f, g, h)) && (clockwise(a, b, c, d, e, f) != clockwise(a, b, c, d, g, h))}
+
+inside = (a, b, c, d, e, f, g, h) => { return ((clockwise(a, b, c, d, e, f) == clockwise(a, b, e, f, g, h)) && (clockwise(a, b, e, f, g, h) == clockwise(a, b, g, h, c, d)));
+}
+
+camerazoom = 1;
+camera = [0,0]
+mousedown = false;
+
+
+drawmore = true;
+rad=5
+start = {x:50, y:200, col:"grey"}
+end = {x:350, y:200, col:"black"}
+balls = [{x:100, y:100, col:"blue"}, {x:100, y:300, col:"red"}, {x:300, y:100, col:"red"}, {x:300, y:300, col:"blue"}, start, end]
+
+lines = [{x1: -10000, x2: 50, y1: 199, y2: 199, col:"blue"}, {x1: 350, x2: 10000, y1: 199, y2: 199, col:"blue"}, {x1: -10000, x2: 50, y1: 201, y2: 201, col:"red"}, {x1: 350, x2: 10000, y1: 201, y2: 201, col:"red"}]
+
+path = []
+
+balls.forEach(ball => {ball.x += Math.random(), ball.y += Math.random()})
+
+function draw(){
+    if(!drawmore) return;
+
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0,0,4000,4000)
+
+     if(!pathstarted && path.length >= 2){
+        ctx.fillStyle = "#ffaaaa"
+        ctx.beginPath();
+        ctx.moveTo(path[0].o.x, path[0].o.y);
+        for(var i=1; i<path.length; i++){
+            ctx.lineTo(path[i].o.x, path[i].o.y );
+        }
+        ctx.lineTo(10000, 200)
+        ctx.lineTo(10000, 10000)
+        ctx.lineTo(-10000, 10000)
+        ctx.lineTo(-10000, 200)
+        ctx.lineTo(path[0].o.x, path[0].o.y)
+        ctx.fill()
+     }
+
+     
+     if(!pathstarted && path.length >= 2){
+        ctx.fillStyle = "#aaaaff"
+        ctx.beginPath();
+        ctx.moveTo(path[0].o.x, path[0].o.y);
+        for(var i=1; i<path.length; i++){
+            ctx.lineTo(path[i].o.x, path[i].o.y );
+        }
+        ctx.lineTo(10000, 200)
+        ctx.lineTo(10000, -10000)
+        ctx.lineTo(-10000, -10000)
+        ctx.lineTo(-10000, 200)
+        ctx.lineTo(path[0].o.x, path[0].o.y)
+        ctx.fill()
+     }
+
+
+    lines.forEach(line => {
+       
+      
+        ctx.strokeStyle = line.col
+      
+        ctx.beginPath();
+        ctx.moveTo(line.x1, line.y1 );
+        ctx.lineTo(line.x2, line.y2 );
+        ctx.lineWidth = 2;
+         
+        ctx.stroke();
+
+       
+    });
+
+     for(var i=0; i<path.length - 1 ;i++){
+         ctx.strokeStyle = "black"
+      
+        ctx.beginPath();
+        ctx.moveTo(path[i].o.x, path[i].o.y );
+        ctx.lineTo(path[i+1].o.x, path[i+1].o.y );
+        ctx.lineWidth = 2;
+         
+        ctx.stroke();
+     }
+
+     balls.forEach(ball => {
+       
+      
+        ctx.fillStyle = ball.col
+      
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, rad + 1, 0, 2 * Math.PI);
+        ctx.lineWidth = 2;
+         
+        ctx.fill();
+
+       
+    });
+
+    
+
+
+
+    checkwin();
+
+}
+
+
+function side(ball) {
+    for(var i = 0; i<path.length; i++){
+        if(path[i].o == ball) return path[i].cw;
+    }
+    ov = 0;
+    un = 0;
+    for(var i = 0; i<path.length-1; i++){
+        if((path[i].o.x < ball.x != path[i+1].o.x < ball.x) && clockwise(path[i].o.x, path[i].o.y, path[i+1].o.x, path[i+1].o.y, ball.x, ball.y)){
+            ov++;
+        }else{
+            un++;
+        }
+    }
+    return !(ov%2) 
+}
+
+
+function checkwin(){
+    won = true;
+    if(path.length < 1 || path[path.length-1].o.col != "black") return;
+    balls.forEach(ball => {
+        sd = side(ball);
+
+        if(ball.col == "blue" && !sd) won = false;
+        if(ball.col == "red" && sd) won = false;
+    })
+   
+    if(won) win();
+}
+function win(){
+    ctx.drawImage(complete, 0, 0);
+    drawmore = false;
+}
+
+window.onwheel = e => {
+    if(e.deltaY < 0){
+        camerazoom += .1;
+    }else{
+        camerazoom -= .1;
+    }
+    if(camerazoom < .2){
+        camerazoom = .2;
+    }
+    if(camerazoom > 5){
+        camerazoom = 5;
+    }
+        draw();
+
+}
+
+pathstarted = false;
+
+function moveto(nw){
+    ok = true;
+    if(path.length >= 1 && path[path.length-1].o.col == "black"){
+        return;
+    }
+    if(path.length >= 2 && path[path.length-2].o.col == "black"){
+        path.splice(length-1, 1);
+        return;
+    }
+    savestate = structuredClone([path, balls, start, end]);
+
+    if(!ok) return
+    didone = false;
+    balls.forEach(ball => {
+        if(didone) return;
+        if(ball == path[path.length-2].o) return;
+        if(inside(ball.x, ball.y, path[path.length-2].o.x, path[path.length-2].o.y, path[path.length-1].o.x, path[path.length-1].o.y, nw.x, nw.y)){
+            path[path.length-1] = {o:ball, cw: clockwise(ball.x, ball.y, path[path.length-2].o.x, path[path.length-2].o.y, nw.x, nw.y)}
+            path.push({o: nw})
+            didone = true;
+        }
+    });
+
+    path[path.length-1] =  {o: nw}
+
+
+    if(path.length >= 3 && path[path.length-2].cw != clockwise(path[path.length-2].o.x, path[path.length-2].o.y, path[path.length-3].o.x, path[path.length-3].o.y, nw.x, nw.y)){
+        path.splice(path.length-2, 1);
+    }
+
+
+    for(var i=0; i<path.length-1; i++){
+        for(var j=i; j<path.length-1; j++){
+            a = path[i].o;
+            b = path[i+1].o;
+            c = path[j].o;
+            d = path[j+1].o;
+            if(a == c || a == d || b == c || b == d) continue;
+            if(crossing(a.x, a.y, b.x, b.y, c.x, c.y, d.x, d.y)) ok = false;
+        }
+    }
+
+    for(var i=0; i<path.length-1; i++){
+        for(var j=0; j<lines.length; j++){
+            a = path[i].o;
+            b = path[i+1].o;
+            c = lines[j];
+       
+            if(crossing(a.x, a.y, b.x, b.y, c.x1, c.y1, c.x2, c.y2)) ok = false;
+        }
+    }
+
+
+    if(!ok){
+        console.log("asdf");
+        [path, balls, start, end] = structuredClone(savestate);
+    }
+
+    //path[path.length-1] =  {o: nw}
+}
+
+window.onmousemove = e => {
+    if(mousedown){
+        camera[0] += (e.offsetX - mousedown[0])/camerazoom;
+        camera[1] += (e.offsetY - mousedown[1])/camerazoom;
+            mousedown = [e.offsetX, e.offsetY]
+
+    }else{
+        if(!pathstarted){
+            if(distance(start.x, start.y, e.offsetX, e.offsetY) < 15){
+                pathstarted = true;
+                path = []
+                path[0] = {o: start}
+                path[1] = {o: {x: e.offsetX, y: e.offsetY}}
+            }
+             
+        }else{
+            if(distance(end.x, end.y, e.offsetX, e.offsetY) < 15){
+                pathstarted = false;
+                path[path.length-1] = {o: end}
+            }
+            moveto({x: e.offsetX, y: e.offsetY})
+            checkwin();
+        }
+    }
+    draw();
+}
+
+window.onmousedown = e => {
+    
+    mousedown = [e.offsetX, e.offsetY];
+    pathstarted = false;
+    path = []
+    draw()
+}
+
+window.onmouseup = e => {
+    mousedown = false;
+}
+
+draw();
+
+   function resize(){
+        canvas.height  = window.innerHeight - 10 ;
+   
+         canvas.width  = window.innerWidth   - 10;
+        draw()
+  }
+
+   resize()
+
+    window.addEventListener('resize', resize);
+
+</script>
+</html>
