@@ -449,7 +449,15 @@ function moveto(nw){
     }
     savestate = structuredClone([path, balls, start, end]);
 
-    if(!ok) return
+    for(var i=0; i<path.length-2; i++){
+            a = path[i].o;
+            b = path[i+1].o;
+            c = path[path.length-1].o;
+            d = nw;
+            if(crossing(a.x, a.y, b.x, b.y, c.x, c.y, d.x, d.y)) ok = false;
+        
+    }
+
     didone = false;
     balls.forEach(ball => {
         if(didone) return;
@@ -461,12 +469,17 @@ function moveto(nw){
         }
     });
 
+    
+
     path[path.length-1] =  {o: nw}
 
 
     if(path.length >= 3 && path[path.length-2].cw != clockwise(path[path.length-2].o.x, path[path.length-2].o.y, path[path.length-3].o.x, path[path.length-3].o.y, nw.x, nw.y)){
         path.splice(path.length-2, 1);
     }
+
+
+
 
 
     for(var i=0; i<path.length-1; i++){
