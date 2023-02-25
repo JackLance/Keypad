@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="en" style = "margin:0">
+<body style = "margin:0">
+    <div style = "margin:0">
+<canvas id="gameCanvas"></canvas>
+</div>
+</body>
+<script>
+
+document.addEventListener('contextmenu', event => event.preventDefault());
+
+
+canvas = document.getElementById ('gameCanvas' );
+ctx = canvas.getContext ('2d' );
+
+
+
+ const complete = new Image();
+ complete.src = "complete.png"
+
+distance = (a, b, c, d) => {return Math.sqrt((a-c)*(a-c) + (b-d)*(b-d))};
+
+clockwise = (a, b, c, d, e, f) => { return (c-a) * (f-b) - (e-a) * (d-b) > 0}
+
+crossing = (a, b, c, d, e, f, g, h) => {return (clockwise(a, b, e, f, g, h) != clockwise(c, d, e, f, g, h)) && (clockwise(a, b, c, d, e, f) != clockwise(a, b, c, d, g, h))}
+
+inside = (a, b, c, d, e, f, g, h) => { return ((clockwise(a, b, c, d, e, f) == clockwise(a, b, e, f, g, h)) && (clockwise(a, b, e, f, g, h) == clockwise(a, b, g, h, c, d)));
+}
+
+camerazoom = 1;
+camera = [0,0]
+mousedown = false;
+
+
+drawmore = true;
+rad=6
+start = {x:50, y:200, col:"#000000"}
+end = {x:350, y:200, col:"black"}
+balls = [{x:200, y:100, col:"blue", col2: "lightblue"}, {x:100, y:130, col:"blue", col2: "lightblue"}, {x:300, y:130, col:"red", col2: "pink"}, {x:100, y:270, col:"red", col2: "pink"}, {x:200, y:300, col:"green", col2: "lightgreen"}, {x:300, y:270, col:"green", col2: "lightgreen"}, start, end]
+
+lines = [{x1: -10000, x2: 50, y1: 200, y2: 200, col:"black"}, {x1: 350, x2: 10000, y1: 200, y2: 200, col:"black"}]
+
+path = []
+
+balls.forEach(ball => {ball.x += Math.random(), ball.y += Math.random()})
+
+function arc(a, b, c, d){
+    //if(Math.abs(Math.atan2(b[1]-a.y, b[0]-a.x) - Math.atan2(c[1]-a.y, c[0]-a.x)) < 0.3) return;
+    ctx.arc(a.x, a.y, rad, Math.atan2(b[1]-a.y, b[0]-a.x), Math.atan2(c[1]-a.y, c[0]-a.x), d)
+}
+
+function fillin(polygon){
+    ctx.beginPath();
+
+
+        
+       
+
+    if(path.length >= 1){
+        ctx.moveTo(polygon[polygon.length-1].o.x, polygon[polygon.length-1].o.y);
+        prev = [polygon[polygon.length-1].o.x, polygon[polygon.length-1].o.y]
+    }
+    rad += 4
+     for(var i=0; i<polygon.length - 1 ;i++){
+         ctx.strokeStyle = "black"
+        
+        dx = polygon[i+1].o.x - polygon[i].o.x;
+        dy = polygon[i+1].o.y - polygon[i].o.y;
+        dx *= rad / distance(polygon[i].o.x, polygon[i].o.y, polygon[i+1].o.x, polygon[i+1].o.y);
+        dy *= rad / distance(polygon[i].o.x, polygon[i].o.y, polygon[i+1].o.x, polygon[i+1].o.y);
+        if(polygon[i].cw && polygon[i+1].cw){
+
+            arc(polygon[i].o, prev, [polygon[i].o.x - dy, polygon[i].o.y + dx], true);
+            //ctx.lineTo(polygon[i].o.x - dy, polygon[i].o.y + dx );
+            ctx.lineTo(polygon[i+1].o.x - dy, polygon[i+1].o.y + dx);
+            prev = [polygon[i+1].o.x - dy, polygon[i+1].o.y + dx]
+        }else if(polygon[i].cw == false && polygon[i+1].cw == false){
+            arc(polygon[i].o, prev, [polygon[i].o.x + dy, polygon[i].o.y - dx]);
+
+            //ctx.lineTo(polygon[i].o.x + dy, polygon[i].o.y - dx );
+            ctx.lineTo(polygon[i+1].o.x + dy, polygon[i+1].o.y - dx);
+            prev = [polygon[i+1].o.x + dy, polygon[i+1].o.y - dx]
+        }else if(polygon[i].cw && polygon[i+1].cw == false){
+            
+            theta = Math.acos(2*rad / distance(polygon[i].o.x, polygon[i].o.y, polygon[i+1].o.x, polygon[i+1].o.y));
+            rx = dx * Math.cos(theta) - dy * Math.sin(theta)
+            ry = dy * Math.cos(theta) + dx * Math.sin(theta)
+            arc(polygon[i].o, prev, [polygon[i].o.x +rx, polygon[i].o.y + ry], true);
+            //ctx.lineTo(polygon[i].o.x + rx , polygon[i].o.y + ry );
+            ctx.lineTo(polygon[i+1].o.x - rx, polygon[i+1].o.y - ry);
+            prev = [polygon[i+1].o.x - rx, polygon[i+1].o.y - ry]
+        }
+        else if(polygon[i].cw == false && polygon[i+1].cw ){
+            
+            theta = Math.acos(2*rad / distance(polygon[i].o.x, polygon[i].o.y, polygon[i+1].o.x, polygon[i+1].o.y));
+            rx = dx * Math.cos(theta) - dy * Math.sin(theta)
+            ry = dy * Math.cos(theta) + dx * Math.sin(theta)
+            arc(polygon[i].o, prev, [polygon[i].o.x -rx, polygon[i].o.y - ry]);
+            //ctx.lineTo(polygon[i].o.x - rx , polygon[i].o.y - ry );
+            ctx.lineTo(polygon[i+1].o.x + rx, polygon[i+1].o.y + ry);
+            prev = [polygon[i+1].o.x + rx, polygon[i+1].o.y + ry]
+
+        }
+        else if(polygon[i].cw == undefined && polygon[i+1].cw ){
+            
+            theta = Math.acos(rad / distance(polygon[i].o.x, polygon[i].o.y, polygon[i+1].o.x, polygon[i+1].o.y));
+            theta *= -1;
+            rx = dx * Math.cos(theta) - dy * Math.sin(theta)
+            ry = dy * Math.cos(theta) + dx * Math.sin(theta)
+
+            ctx.lineTo(polygon[i].o.x , polygon[i].o.y  );
+            ctx.lineTo(polygon[i+1].o.x - rx, polygon[i+1].o.y - ry);
+            prev = [polygon[i+1].o.x - rx, polygon[i+1].o.y - ry]
+        }
+        else if(polygon[i].cw == undefined && polygon[i+1].cw == false ){
+            theta = Math.acos(rad / distance(polygon[i].o.x, polygon[i].o.y, polygon[i+1].o.x, polygon[i+1].o.y));
+
+            rx = dx * Math.cos(theta) - dy * Math.sin(theta)
+            ry = dy * Math.cos(theta) + dx * Math.sin(theta)
+            ctx.lineTo(polygon[i].o.x , polygon[i].o.y  );
+            ctx.lineTo(polygon[i+1].o.x - rx, polygon[i+1].o.y - ry);
+            prev = [polygon[i+1].o.x - rx, polygon[i+1].o.y - ry]
+        }
+        else if(polygon[i].cw && polygon[i+1].cw == undefined ){
+           
+            theta = Math.acos(rad / distance(polygon[i].o.x, polygon[i].o.y, polygon[i+1].o.x, polygon[i+1].o.y));
+            rx = dx * Math.cos(theta) - dy * Math.sin(theta)
+            ry = dy * Math.cos(theta) + dx * Math.sin(theta)
+            arc(polygon[i].o, prev, [polygon[i].o.x +rx, polygon[i].o.y + ry], true);
+            //ctx.lineTo(polygon[i].o.x + rx, polygon[i].o.y + ry );
+            ctx.lineTo(polygon[i+1].o.x, polygon[i+1].o.y );
+            prev = [polygon[i+1].o.x, polygon[i+1].o.y]
+        }
+        else if(polygon[i].cw == false && polygon[i+1].cw == undefined ){
+           
+            theta = Math.acos(rad / distance(polygon[i].o.x, polygon[i].o.y, polygon[i+1].o.x, polygon[i+1].o.y));
+            theta *= -1;
+            rx = dx * Math.cos(theta) - dy * Math.sin(theta)
+            ry = dy * Math.cos(theta) + dx * Math.sin(theta)
+            arc(polygon[i].o, prev, [polygon[i].o.x + rx, polygon[i].o.y + ry]);
+            //ctx.lineTo(polygon[i].o.x - rx, polygon[i].o.y - ry );
+            ctx.lineTo(polygon[i+1].o.x , polygon[i+1].o.y );
+            prev = [polygon[i+1].o.x, polygon[i+1].o.y]
+
+        }
+        else{
+            ctx.lineTo(polygon[i].o.x, polygon[i].o.y );
+            ctx.lineTo(polygon[i+1].o.x, polygon[i+1].o.y );
+            prev = [polygon[i+1].o.x, polygon[i+1].o.y]
+
+        }
+
+        
+         
+     }
+     rad -= 4;
+
+     ctx.fill();
+}
+
+
+function itspolygontime(){
+     balls.forEach(ball => {ball.done = false;})
+     pathsofar = []
+     polygons = []
+     for(var i = 0; i<path.length; i++){
+        any = false;
+        for(var j=0; j<pathsofar.length; j++){
+            if(pathsofar[j].o == path[i].o){
+                pathsofar.push(path[i])
+                polygons.push(pathsofar.slice(j));
+                pathsofar.splice(j+1);
+                any = true;
+            }
+        }
+
+        if(!any) pathsofar.push(path[i])
+     }
+     polygons.push([{o:{x:-10000, y: -10000}}, {o:{x:-10000, y: 200}}, ...pathsofar, {o:{x:10000, y: 200}}, {o:{x:10000, y: -10000}}])
+     polygons.push([{o:{x:-10000, y: 10000}}, {o:{x:-10000, y: 200}}, ...pathsofar, {o:{x:10000, y: 200}}, {o:{x:10000, y: 10000}}])
+
+    polygons.forEach(polygon => {
+        polygon.balls = []
+        balls.forEach(ball => {
+            if(!!ball.done) return;
+            if(ball.col == "black" || ball.col == "#000000") return;
+            for(var i=0; i<polygon.length; i++){
+                if(ball == polygon[i].o) {
+                    if(polygon[0].o.y == -10000){
+                        if(polygon[i].cw){
+                            ball.done = polygon;
+                            polygon.balls.push(ball);
+                        }
+                    }
+                    else if(polygon[0].o.y == 10000){
+                        if(!polygon[i].cw){
+                            ball.done = polygon;
+                            polygon.balls.push(ball);
+                        }
+                    }
+                    else if(i != 0 && i != polygon.length-1 && polygon[i].cw == polygon[polygon.length-1].cw){
+                        ball.done = polygon;
+                        polygon.balls.push(ball);
+                    }
+                    return;
+                }
+            }
+            ins = false;
+            for(var i=0; i<polygon.length; i++){
+                j = (i+1)%polygon.length;
+                if(crossing(polygon[i].o.x, polygon[i].o.y, polygon[j].o.x, polygon[j].o.y, ball.x, ball.y, ball.x + 1, ball.y + 50000)){
+                    ins = !ins;
+                }
+            }
+            if(ins){
+                ball.done = polygon;
+                polygon.balls.push(ball);
+
+            }
+        })
+     })
+
+    won = true;
+    colshown = []
+     polygons.reverse()
+     polygons.forEach(polygon => {
+        fil = "white";
+        polygon.balls.forEach(ball => {
+            if(fil == "white"){
+                fil = ball.col2;
+            }
+            if(fil != ball.col2){
+                won = false;
+                fil = "#654321";
+            }
+        })
+        ctx.fillStyle = fil
+        if(colshown.includes(fil)) won = false;
+        colshown.push(fil)
+
+        fillin(polygon);
+        
+     })
+     
+}
+
+function draw(force){
+            ctx.lineWidth = 6;
+
+    if(!drawmore) return;
+    if(!force && !pathstarted && path.length > 0) return;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0,0,4000,4000)
+
+     if(!pathstarted && path.length >= 2){
+        itspolygontime();
+       
+     }
+
+    
+
+    lines.forEach(line => {
+       
+      
+        ctx.strokeStyle = line.col
+      
+        ctx.beginPath();
+        ctx.moveTo(line.x1, line.y1 );
+        ctx.lineTo(line.x2, line.y2 );
+         
+        ctx.stroke();
+
+       
+    });
+
+    ctx.beginPath();
+    if(path.length >= 1){
+        ctx.moveTo(path[0].o.x, path[0].o.y)
+        prev = [path[0].o.x, path[0].o.y]
+    }
+    rad+=ctx.lineWidth/2 + 1;
+     for(var i=0; i<path.length - 1 ;i++){
+         ctx.strokeStyle = "black"
+        
+        dx = path[i+1].o.x - path[i].o.x;
+        dy = path[i+1].o.y - path[i].o.y;
+        dx *= rad / distance(path[i].o.x, path[i].o.y, path[i+1].o.x, path[i+1].o.y);
+        dy *= rad / distance(path[i].o.x, path[i].o.y, path[i+1].o.x, path[i+1].o.y);
+        if(path[i].cw && path[i+1].cw){
+            arc(path[i].o, prev, [path[i].o.x - dy, path[i].o.y + dx], true);
+            //ctx.lineTo(path[i].o.x - dy, path[i].o.y + dx );
+            ctx.lineTo(path[i+1].o.x - dy, path[i+1].o.y + dx);
+            prev = [path[i+1].o.x - dy, path[i+1].o.y + dx]
+        }else if(path[i].cw == false && path[i+1].cw == false){
+            arc(path[i].o, prev, [path[i].o.x + dy, path[i].o.y - dx]);
+
+            //ctx.lineTo(path[i].o.x + dy, path[i].o.y - dx );
+            ctx.lineTo(path[i+1].o.x + dy, path[i+1].o.y - dx);
+            prev = [path[i+1].o.x + dy, path[i+1].o.y - dx]
+        }else if(path[i].cw && path[i+1].cw == false){
+            
+            theta = Math.acos(2*rad / distance(path[i].o.x, path[i].o.y, path[i+1].o.x, path[i+1].o.y));
+            rx = dx * Math.cos(theta) - dy * Math.sin(theta)
+            ry = dy * Math.cos(theta) + dx * Math.sin(theta)
+            arc(path[i].o, prev, [path[i].o.x +rx, path[i].o.y + ry], true);
+            //ctx.lineTo(path[i].o.x + rx , path[i].o.y + ry );
+            ctx.lineTo(path[i+1].o.x - rx, path[i+1].o.y - ry);
+            prev = [path[i+1].o.x - rx, path[i+1].o.y - ry]
+        }
+        else if(path[i].cw == false && path[i+1].cw ){
+            
+            theta = Math.acos(2*rad / distance(path[i].o.x, path[i].o.y, path[i+1].o.x, path[i+1].o.y));
+            rx = dx * Math.cos(theta) - dy * Math.sin(theta)
+            ry = dy * Math.cos(theta) + dx * Math.sin(theta)
+            arc(path[i].o, prev, [path[i].o.x -rx, path[i].o.y - ry]);
+            //ctx.lineTo(path[i].o.x - rx , path[i].o.y - ry );
+            ctx.lineTo(path[i+1].o.x + rx, path[i+1].o.y + ry);
+            prev = [path[i+1].o.x + rx, path[i+1].o.y + ry]
+
+        }
+        else if(path[i].cw == undefined && path[i+1].cw ){
+            
+            theta = Math.acos(rad / distance(path[i].o.x, path[i].o.y, path[i+1].o.x, path[i+1].o.y));
+            theta *= -1;
+            rx = dx * Math.cos(theta) - dy * Math.sin(theta)
+            ry = dy * Math.cos(theta) + dx * Math.sin(theta)
+
+            ctx.lineTo(path[i].o.x , path[i].o.y  );
+            ctx.lineTo(path[i+1].o.x - rx, path[i+1].o.y - ry);
+            prev = [path[i+1].o.x - rx, path[i+1].o.y - ry]
+        }
+        else if(path[i].cw == undefined && path[i+1].cw == false ){
+           
+            theta = Math.acos(rad / distance(path[i].o.x, path[i].o.y, path[i+1].o.x, path[i+1].o.y));
+
+            rx = dx * Math.cos(theta) - dy * Math.sin(theta)
+            ry = dy * Math.cos(theta) + dx * Math.sin(theta)
+            ctx.lineTo(path[i].o.x , path[i].o.y  );
+            ctx.lineTo(path[i+1].o.x - rx, path[i+1].o.y - ry);
+            prev = [path[i+1].o.x - rx, path[i+1].o.y - ry]
+        }
+        else if(path[i].cw && path[i+1].cw == undefined ){
+           
+            theta = Math.acos(rad / distance(path[i].o.x, path[i].o.y, path[i+1].o.x, path[i+1].o.y));
+            rx = dx * Math.cos(theta) - dy * Math.sin(theta)
+            ry = dy * Math.cos(theta) + dx * Math.sin(theta)
+            arc(path[i].o, prev, [path[i].o.x +rx, path[i].o.y + ry], true);
+            //ctx.lineTo(path[i].o.x + rx, path[i].o.y + ry );
+            ctx.lineTo(path[i+1].o.x, path[i+1].o.y );
+            prev = [path[i+1].o.x, path[i+1].o.y]
+        }
+        else if(path[i].cw == false && path[i+1].cw == undefined ){
+           
+            theta = Math.acos(rad / distance(path[i].o.x, path[i].o.y, path[i+1].o.x, path[i+1].o.y));
+            theta *= -1;
+            rx = dx * Math.cos(theta) - dy * Math.sin(theta)
+            ry = dy * Math.cos(theta) + dx * Math.sin(theta)
+            arc(path[i].o, prev, [path[i].o.x + rx, path[i].o.y + ry]);
+            //ctx.lineTo(path[i].o.x - rx, path[i].o.y - ry );
+            ctx.lineTo(path[i+1].o.x , path[i+1].o.y );
+            prev = [path[i+1].o.x, path[i+1].o.y]
+
+        }
+        else{
+            ctx.lineTo(path[i].o.x, path[i].o.y );
+            ctx.lineTo(path[i+1].o.x, path[i+1].o.y );
+            prev = [path[i+1].o.x, path[i+1].o.y]
+
+        }
+
+        
+        
+         
+     }
+     rad-=ctx.lineWidth/2 + 1;
+             ctx.stroke();
+
+     balls.forEach(ball => {
+       
+        if(ball == end && !pathstarted) return;
+        if(ball == start && (pathstarted || won )) return;
+        if(ball == start || ball == end) rad += 3
+        ctx.fillStyle = ball.col
+      
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, rad , 0, 2 * Math.PI);
+         
+        ctx.fill();
+        if(ball == start || ball == end) rad -= 3
+       
+    });
+
+    
+
+
+
+
+}
+
+
+function side(ball) {
+    for(var i = 0; i<path.length; i++){
+        if(path[i].o == ball) return path[i].cw;
+    }
+    ov = 0;
+    un = 0;
+    for(var i = 0; i<path.length-1; i++){
+        if((path[i].o.x < ball.x != path[i+1].o.x < ball.x) && clockwise(path[i].o.x, path[i].o.y, path[i+1].o.x, path[i+1].o.y, ball.x, ball.y)){
+            ov++;
+        }else{
+            un++;
+        }
+    }
+    return !(ov%2) 
+}
+
+
+function win(){
+    ctx.drawImage(complete, 0, 0);
+    drawmore = false;
+}
+
+window.onwheel = e => {
+    if(e.deltaY < 0){
+        camerazoom += .1;
+    }else{
+        camerazoom -= .1;
+    }
+    if(camerazoom < .2){
+        camerazoom = .2;
+    }
+    if(camerazoom > 5){
+        camerazoom = 5;
+    }
+        draw();
+
+}
+
+pathstarted = false;
+
+function moveto(nw){
+    ok = true;
+    if(path.length >= 1 && path[path.length-1].o.col == "black"){
+        return;
+    }
+    if(path.length >= 2 && path[path.length-2].o.col == "black"){
+        path.splice(length-1, 1);
+        return;
+    }
+    savestate = structuredClone([path, balls, start, end]);
+
+    if(!ok) return
+    didone = false;
+    balls.forEach(ball => {
+        if(didone) return;
+        if(ball == path[path.length-2].o) return;
+        if(inside(ball.x, ball.y, path[path.length-2].o.x, path[path.length-2].o.y, path[path.length-1].o.x, path[path.length-1].o.y, nw.x, nw.y)){
+            path[path.length-1] = {o:ball, cw: clockwise(ball.x, ball.y, path[path.length-2].o.x, path[path.length-2].o.y, nw.x, nw.y)}
+            path.push({o: nw})
+            didone = true;
+        }
+    });
+
+    path[path.length-1] =  {o: nw}
+
+
+    if(path.length >= 3 && path[path.length-2].cw != clockwise(path[path.length-2].o.x, path[path.length-2].o.y, path[path.length-3].o.x, path[path.length-3].o.y, nw.x, nw.y)){
+        path.splice(path.length-2, 1);
+    }
+
+
+    for(var i=0; i<path.length-1; i++){
+        for(var j=i; j<path.length-1; j++){
+            a = path[i].o;
+            b = path[i+1].o;
+            c = path[j].o;
+            d = path[j+1].o;
+            if(a == c || a == d || b == c || b == d) continue;
+            if(crossing(a.x, a.y, b.x, b.y, c.x, c.y, d.x, d.y)) ok = false;
+        }
+    }
+
+    for(var i=0; i<path.length-1; i++){
+        for(var j=0; j<lines.length; j++){
+            a = path[i].o;
+            b = path[i+1].o;
+            c = lines[j];
+       
+            if(crossing(a.x, a.y, b.x, b.y, c.x1, c.y1, c.x2, c.y2)) ok = false;
+        }
+    }
+
+
+    if(!ok){
+        [path, balls, start, end] = structuredClone(savestate);
+    }
+
+    //path[path.length-1] =  {o: nw}
+}
+
+won = false;
+
+window.onmousemove = e => {
+    if(mousedown){
+        camera[0] += (e.offsetX - mousedown[0])/camerazoom;
+        camera[1] += (e.offsetY - mousedown[1])/camerazoom;
+            mousedown = [e.offsetX, e.offsetY]
+
+    }else{
+        if(!pathstarted){
+            if(distance(start.x, start.y, e.offsetX, e.offsetY) < 15){
+                                if(won) return;
+
+                pathstarted = true;
+                path = []
+                path[0] = {o: start}
+                path[1] = {o: {x: e.offsetX, y: e.offsetY}}
+            }
+             
+        }else{
+            if(distance(end.x, end.y, e.offsetX, e.offsetY) < 5){
+                pathstarted = false;
+                path[path.length-1] = {o: end}
+            }
+            moveto({x: e.offsetX, y: e.offsetY})
+            draw(true);
+        }
+    }
+    draw();
+}
+
+window.onmousedown = e => {
+    if(won) win();
+    mousedown = [e.offsetX, e.offsetY];
+    pathstarted = false;
+    path = []
+    draw()
+}
+
+window.onmouseup = e => {
+    mousedown = false;
+}
+
+draw();
+
+   function resize(){
+        canvas.height  = window.innerHeight - 10 ;
+   
+         canvas.width  = window.innerWidth   - 10;
+        draw()
+  }
+
+   resize()
+
+    window.addEventListener('resize', resize);
+
+</script>
+</html>
