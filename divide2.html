@@ -33,16 +33,28 @@ mousedown = false;
 
 
 drawmore = true;
-rad=6
-start = {x:50, y:200, col:"#000000"}
-end = {x:350, y:200, col:"black"}
-balls = [{x:200, y:100, col:"blue", col2: "lightblue"}, {x:100, y:130, col:"blue", col2: "lightblue"}, {x:300, y:130, col:"red", col2: "pink"}, {x:100, y:270, col:"red", col2: "pink"}, {x:200, y:300, col:"green", col2: "lightgreen"}, {x:300, y:270, col:"green", col2: "lightgreen"}, start, end]
+rad=8
+start = {x:100, y:400, col:"#222222"}
+end = {x:700, y:400, col:"#222222"}
 
-lines = [{x1: -10000, x2: 50, y1: 200, y2: 200, col:"black"}, {x1: 350, x2: 10000, y1: 200, y2: 200, col:"black"}]
+
+cols = ["#2222dd", "#dd7722", "#22bb22",  "#dd22dd", "#22dddd", "#dddd22", ];
+
+
+
+balls = [start, end, {x:250, y:200, v: 0},  {x:250, y:600, v: 1}, {x:550, y:200, v: 1},  {x:550, y:600, v: 0},]
+
+lines = [{x1: -10000, x2: start.x, y1: start.y, y2: start.y, col:"#222222"}, {x1: end.x, x2: 10000, y1: end.y, y2: end.y, col:"#222222"}]
 
 path = []
 
-balls.forEach(ball => {ball.x += Math.random(), ball.y += Math.random()})
+balls.forEach(ball => {
+    ball.x += Math.random(), 
+    ball.y += Math.random();
+    if(ball == start || ball == end) return;
+    ball.col = cols[ball.v]
+    ball.col2 = ball.col
+})
 
 function arc(a, b, c, d){
     //if(Math.abs(Math.atan2(b[1]-a.y, b[0]-a.x) - Math.atan2(c[1]-a.y, c[0]-a.x)) < 0.3) return;
@@ -62,7 +74,7 @@ function fillin(polygon){
     }
     rad += 4
      for(var i=0; i<polygon.length - 1 ;i++){
-         ctx.strokeStyle = "black"
+         ctx.strokeStyle = "#222222"
         
         dx = polygon[i+1].o.x - polygon[i].o.x;
         dy = polygon[i+1].o.y - polygon[i].o.y;
@@ -160,48 +172,92 @@ function fillin(polygon){
 
 
 function itspolygontime(){
-     balls.forEach(ball => {ball.done = false;})
+     balls.forEach(ball => {ball.done = false; ball.firsthit = false})
      pathsofar = []
      polygons = []
-     for(var i = 0; i<path.length; i++){
-        any = false;
-        for(var j=0; j<pathsofar.length; j++){
-            if(pathsofar[j].o == path[i].o){
-                pathsofar.push(path[i])
-                polygons.push(pathsofar.slice(j));
-                pathsofar.splice(j+1);
-                any = true;
+     edges = []
+     balls.forEach(ball => {
+        hits = []
+        for(var i=0; i<path.length; i++){
+            
+            if(path[i].o == ball){
+                hits.push(i);
             }
         }
 
-        if(!any) pathsofar.push(path[i])
-     }
-     polygons.push([{o:{x:-10000, y: -10000}}, {o:{x:-10000, y: 200}}, ...pathsofar, {o:{x:10000, y: 200}}, {o:{x:10000, y: -10000}}])
-     polygons.push([{o:{x:-10000, y: 10000}}, {o:{x:-10000, y: 200}}, ...pathsofar, {o:{x:10000, y: 200}}, {o:{x:10000, y: 10000}}])
+        if(hits.length == 0) return;
+        ball.firsthit = hits[0]
+        a = "L"
+        b = "R"
+        if(path[hits[0]].cw){
+            [a, b] = [b, a];
+        }
+        edges[[hits[0], a]] = [(hits[0] + 1) , a];
+        [a, b] = [b, a];
+        for(var i=1; i<hits.length; i++){
+            edges[[hits[i-1], a]] = [(hits[i] + 1),a];
+            edges[[hits[i], a]] = [(hits[i-1] + 1),a];
+            [a, b] = [b, a];
+        }
+        edges[[hits[hits.length-1],a]] = [(hits[hits.length-1] + 1),a];
+
+     })
+
+
+     for(a of ["L", "R"]){
+         for(i=0; i<path.length-1; i++){
+            if(!edges[[i, a]]) continue;
+            poly = []
+            poly["balls"] = [];
+            poly.push(path[i]);
+            z = edges[[i,a]][0];
+            edges[[i,a]] = false;
+            if(path[i].o.firsthit == i && ((a=="R")==(path[i].cw))){
+                path[i].o.done = true;
+                poly.balls.push(path[i].o)
+            }
+            while(z != i){
+                
+                if(path[z].o.firsthit == z && ((a=="R")==(path[z].cw))){
+                    path[z].o.done = true;
+                    poly.balls.push(path[z].o)
+                }
+                
+                poly.push(path[z]);
+                if(path[z].o == end) {
+                    val = {"L":10000, "R":-10000}[a]
+                    poly.push({o:{x:10000, y: 200}})
+                    poly.push({o:{x:10000, y: val}})
+                    poly.push({o:{x:-10000, y: val}})
+                    poly.push({o:{x:-10000, y: 200}})
+                    z = 0;
+                }
+                else{
+                    temp= [z,a];
+                    z = edges[temp][0];
+                    edges[temp] = false;
+                }
+            }
+
+
+            polygons.push(poly);
+         }
+    }
+
+
+     //polygons.push([{o:{x:-10000, y: -10000}}, {o:{x:-10000, y: 200}}, ...pathsofar, {o:{x:10000, y: 200}}, {o:{x:10000, y: -10000}}])
+     //polygons.push([{o:{x:-10000, y: 10000}}, {o:{x:-10000, y: 200}}, ...pathsofar, {o:{x:10000, y: 200}}, {o:{x:10000, y: 10000}}])
 
     polygons.forEach(polygon => {
-        polygon.balls = []
+
+
+        //if(!polygon.balls) polygon.balls = []
         balls.forEach(ball => {
             if(!!ball.done) return;
-            if(ball.col == "black" || ball.col == "#000000") return;
+            if(ball == start || ball == end) return;
             for(var i=0; i<polygon.length; i++){
                 if(ball == polygon[i].o) {
-                    if(polygon[0].o.y == -10000){
-                        if(polygon[i].cw){
-                            ball.done = polygon;
-                            polygon.balls.push(ball);
-                        }
-                    }
-                    else if(polygon[0].o.y == 10000){
-                        if(!polygon[i].cw){
-                            ball.done = polygon;
-                            polygon.balls.push(ball);
-                        }
-                    }
-                    else if(i != 0 && i != polygon.length-1 && polygon[i].cw == polygon[polygon.length-1].cw){
-                        ball.done = polygon;
-                        polygon.balls.push(ball);
-                    }
+                  
                     return;
                 }
             }
@@ -209,6 +265,7 @@ function itspolygontime(){
             for(var i=0; i<polygon.length; i++){
                 j = (i+1)%polygon.length;
                 if(crossing(polygon[i].o.x, polygon[i].o.y, polygon[j].o.x, polygon[j].o.y, ball.x, ball.y, ball.x + 1, ball.y + 50000)){
+
                     ins = !ins;
                 }
             }
@@ -222,6 +279,7 @@ function itspolygontime(){
 
     won = true;
     colshown = []
+    flash = []
      polygons.reverse()
      polygons.forEach(polygon => {
         fil = "white";
@@ -230,29 +288,57 @@ function itspolygontime(){
                 fil = ball.col2;
             }
             if(fil != ball.col2){
+                console.log(ball.col2);
                 won = false;
                 fil = "#654321";
+                polygon.balls.forEach(b => {
+                    if(!flash.includes(b)){
+                        flash.push(b);
+                    }
+                })
             }
         })
         ctx.fillStyle = fil
-        if(colshown.includes(fil)) won = false;
+        if(fil != "white" && colshown.includes(fil)) {
+
+
+            won = false;
+            balls.forEach(ball => {
+                if(!flash.includes(ball) && ball.col2 == fil){
+                    flash.push(ball);
+                }
+            })
+        }
         colshown.push(fil)
 
-        fillin(polygon);
+        //fillin(polygon);
         
      })
-     
+     flashing(flash);
+     if(won) win();
 }
 
-function draw(force){
-            ctx.lineWidth = 6;
+function flashing(f){
+    f.forEach(ball => {
+        let bc = ball.col2;
+        setTimeout(() => {ball.col = "red"; draw()}, 150);
+        setTimeout(() => {ball.col = ball.col2; draw()}, 300);
+        setTimeout(() => {ball.col = "red"; draw()}, 450);
+        setTimeout(() => {ball.col = ball.col2; draw()}, 600);
+        setTimeout(() => {ball.col = "red"; draw()}, 750);
+        setTimeout(() => {ball.col = ball.col2; draw()}, 900);
+    })
+}
 
+function draw(checkfinal){
+            ctx.lineWidth = 6;
+            ctx.lineCap = "round";
     if(!drawmore) return;
-    if(!force && !pathstarted && path.length > 0) return;
-    ctx.fillStyle = "#ffffff";
+    //if(!force && !pathstarted && path.length > 0) return;
+    ctx.fillStyle = "#dddddd";
     ctx.fillRect(0,0,4000,4000)
 
-     if(!pathstarted && path.length >= 2){
+     if(checkfinal && !pathstarted && path.length >= 2){
         itspolygontime();
        
      }
@@ -280,7 +366,7 @@ function draw(force){
     }
     rad+=ctx.lineWidth/2 + 1;
      for(var i=0; i<path.length - 1 ;i++){
-         ctx.strokeStyle = "black"
+         ctx.strokeStyle = "#222222"
         
         dx = path[i+1].o.x - path[i].o.x;
         dy = path[i+1].o.y - path[i].o.y;
@@ -379,14 +465,20 @@ function draw(force){
        
         if(ball == end && !pathstarted) return;
         if(ball == start && (pathstarted || won )) return;
-        if(ball == start || ball == end) rad += 3
+        //if(ball == start || ball == end) rad += 3
         ctx.fillStyle = ball.col
-      
+        
         ctx.beginPath();
         ctx.arc(ball.x, ball.y, rad , 0, 2 * Math.PI);
-         
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = "#222222"
+
         ctx.fill();
-        if(ball == start || ball == end) rad -= 3
+        ctx.stroke();
+        ctx.fillStyle = "#ffffff"
+        ctx.font = "bold 14px monospace";
+        if(colorblind && ball.v != undefined )ctx.fillText(ball.v+1, ball.x-4, ball.y+4)
+        //if(ball == start || ball == end) rad -= 3
        
     });
 
@@ -397,7 +489,9 @@ function draw(force){
 
 }
 
+setInterval(draw, 10)
 
+colorblind = false;
 function side(ball) {
     for(var i = 0; i<path.length; i++){
         if(path[i].o == ball) return path[i].cw;
@@ -416,7 +510,7 @@ function side(ball) {
 
 
 function win(){
-    ctx.drawImage(complete, 0, 0);
+    ctx.drawImage(complete, 0, 0, 300, 200);
     drawmore = false;
 }
 
@@ -436,14 +530,15 @@ window.onwheel = e => {
 
 }
 
+
 pathstarted = false;
 
 function moveto(nw){
     ok = true;
-    if(path.length >= 1 && path[path.length-1].o.col == "black"){
+    if(path.length >= 1 && path[path.length-1].o == end){
         return;
     }
-    if(path.length >= 2 && path[path.length-2].o.col == "black"){
+    if(path.length >= 2 && path[path.length-2].o == end){
         path.splice(length-1, 1);
         return;
     }
@@ -455,6 +550,14 @@ function moveto(nw){
             c = path[path.length-1].o;
             d = nw;
             if(crossing(a.x, a.y, b.x, b.y, c.x, c.y, d.x, d.y)) ok = false;
+        
+    }
+
+    for(var i=0; i<lines.length; i++){
+            a = lines[i]
+            c = path[path.length-1].o;
+            d = nw;
+            if(crossing(a.x1, a.y1, a.x2, a.y2, c.x, c.y, d.x, d.y)) ok = false;
         
     }
 
@@ -479,7 +582,9 @@ function moveto(nw){
     }
 
 
-
+    balls.forEach(ball => {
+        if(distance(ball.x, ball.y, nw.x, nw.y) < rad+2) ok = false;
+    })
 
 
     for(var i=0; i<path.length-1; i++){
@@ -543,7 +648,7 @@ window.onmousemove = e => {
 }
 
 window.onmousedown = e => {
-    if(won) win();
+ 
     mousedown = [e.offsetX, e.offsetY];
     pathstarted = false;
     path = []
@@ -552,6 +657,14 @@ window.onmousedown = e => {
 
 window.onmouseup = e => {
     mousedown = false;
+}
+
+window.onkeydown = e => {
+    if(e.key == 'C' || e.key == 'c') {
+        colorblind = !colorblind;
+        draw();
+    }
+    
 }
 
 draw();
