@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+
+    <div>
+<canvas id="gameCanvas" width=1200 height=1200></canvas>
+</div>
+<script>
+
+document.addEventListener('contextmenu', event => event.preventDefault());
+
+
+canvas = document.getElementById ('gameCanvas' );
+ctx = canvas.getContext ('2d' );
+
+rad = 15;
+pieces = [
+{x: 123, y:100, word: "zipper"},
+{x: 123, y:150, word: "steering wheel", gp: 1},
+{x: 123, y:200, word: "soap dispenser"},
+{x: 123, y:250, word: "door knob", gp: 1},
+{x: 123, y:300, word: "doorbell"},
+{x: 123, y:350, word: "kaleidoscope", gp: 1},
+{x: 123, y:400, word: "toaster lever"},
+{x: 123, y:450, word: "toilet plunger"},
+{x: 123, y:500, word: "jar lid", gp: 1},
+{x: 123, y:550, word: "rotary phone dial", gp: 1},
+{x: 123, y:600, word: "screwdriver", gp: 1},
+{x: 123, y:650, word: "piano key"},
+
+
+]
+
+
+keypad = {x: 800, y:200, img:new Image()}
+
+pieces.forEach((piece, i) => {piece.height = 50, piece.width = 25 + 27 * piece.word.length, piece.y = 55 * i + 500})
+selected = null;
+offset = [0,0]
+distance = (a, b, c, d) => {return Math.sqrt((a-c)*(a-c) + (b-d)*(b-d))};
+
+const image = new Image()
+
+ s = "?????"
+
+ const complete = new Image();
+ complete.src = "complete.png"
+
+
+
+
+
+
+drawmore = true;
+
+function draw(){
+    if(!drawmore) return;
+    ctx.fillStyle = "#aaaacc";
+    ctx.fillRect(0, 0, 1200, 1200);
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(50, 50, 1100, 5);
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(598, 50, 5, 500);
+    pieces.reverse();
+    pieces.forEach(piece => {
+       
+      
+        /*ctx.strokeStyle = "#462c4b"
+        if(piece == selected){
+            ctx.strokeStyle = "#962c4b"
+        }
+        ctx.beginPath();
+        ctx.arc(piece.x, piece.y, rad + 1, 0, 2 * Math.PI);
+        ctx.lineWidth = 2;
+         
+        ctx.stroke();
+        ctx.fill();
+        */
+        ctx.fillStyle = "#eeeeee";
+        ctx.fillRect(piece.x, piece.y, piece.width, piece.height);
+        ctx.fillStyle = "#111111";
+    
+        ctx.font = "bold 50px monospace";
+        ctx.fillText(piece.word, piece.x + 10, piece.y+40)
+        ctx.strokeStyle = "#111111";
+        ctx.strokeRect(piece.x, piece.y, piece.width, piece.height);
+    });
+
+
+    pieces.reverse();
+
+    checkwin()
+}
+
+
+function getPixel(img, x, y) {
+    return [1,1,1,x > 0 && y > 0 && x < img.width && y < img.height];
+    let canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    canvas.getContext('2d').drawImage(img, x, y, 1, 1, 0, 0, 1, 1);;
+    let pixelData = canvas.getContext('2d').getImageData(0, 0, 1, 1).data;
+    console.log(pixelData)
+    return pixelData;   
+}
+
+codestate = "question"
+
+function win(){
+    ctx.drawImage(complete, 0, 0);
+    drawmore = false;
+}
+
+function checkwin(){
+    won1 = true;
+    won2 = true;
+    for(var i=0; i<pieces.length; i++){
+        if(pieces[i].y > 700){
+            won1 = false;
+            won2 = false;
+        }
+        if(pieces[i].x > 580 && pieces[i].gp){
+            won1 = false;
+        }
+        if(pieces[i].x > 580 && !pieces[i].gp){
+            won2 = false;
+        }
+        if(pieces[i].x + pieces[i].width < 620 && !pieces[i].gp){
+            won1 = false;
+        }
+        if(pieces[i].x + pieces[i].width < 620 && pieces[i].gp){
+            won2 = false;
+        }
+    }
+    if(won1 || won2) win();
+}
+
+
+canvas.onmousedown = e=>{
+  for(var i = 0; i<pieces.length; i++){
+    piece = pieces[i];
+    if(selected == piece) {
+        selected = null;
+        draw();
+        return;
+    }
+ 
+  }
+
+  for(var i = 0; i<pieces.length; i++){
+        piece = pieces[i];
+
+     if(e.offsetX - piece.x > 0 && e.offsetX - piece.x < piece.width && e.offsetY - piece.y > 0 && e.offsetY - piece.y < piece.height ){
+      
+       selected = piece;
+       offset = [e.offsetX - piece.x, e.offsetY - piece.y]
+       pieces = pieces.filter(p => p !== piece);
+        pieces.unshift(piece);
+
+       draw();
+        return;
+    }
+  }
+
+
+}
+
+canvas.onmouseup = e=>{
+     selected = null;
+}
+
+
+
+canvas.onmousemove = e => {
+    if(!selected) return;
+
+    selected.x = Math.min(Math.max(0, e.offsetX - offset[0]), 1200-selected.width)
+    selected.y = Math.min(Math.max(0,e.offsetY - offset[1]), 1200-selected.height);
+
+    draw();
+}
+
+
+draw();
+
+</script>
+</html>
