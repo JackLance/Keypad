@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+
+    <div style = "display:flex">
+    <div style = "font-size:20px;font-family:sans-serif; margin-right: 15px">
+    This riddle's text is written here to make it so everything fits in the venn-diagram:<br><br><br>
+a = works with people who play professionally<br><br>
+b = generally stays facing one direction while working<br><br>
+c = might fire someone<br><br>
+d = people want a good deal from them<br><br>
+e = is higher up than those they work with<br><br>
+f = works close to a mirror<br><br>
+g = often is someone who talks to customers<br><br>
+h = has a specific vision they're trying to make reality<br><br>
+i = tries to get a good shot<br><br>
+j = is in charge of multiple people at a time<br><br>
+k = often wears a bow tie<br><br>
+l = might work closely to a colorist<br><br>
+    </div>
+<canvas id="gameCanvas" width=1200 height=1200></canvas>
+</div>
+
+<script>
+
+document.addEventListener('contextmenu', event => event.preventDefault());
+
+
+canvas = document.getElementById ('gameCanvas' );
+ctx = canvas.getContext ('2d' );
+
+rad = 15;
+pieces = [
+{x: 123, y:650, word: "a", gp: [0,0,1,1]},
+{x: 123, y:500, word: "b", gp: [0,1,1,1]},
+{x: 123, y:400, word: "c", gp: [1,0,0,0]},
+{x: 123, y:150, word: "d", gp: [1,0,0,1]},
+{x: 123, y:300, word: "e", gp: [1,1,0,0]},
+{x: 123, y:250, word: "f", gp: [0,1,0,0]},
+{x: 123, y:450, word: "g", gp: [1,1,0,1]},
+{x: 123, y:600, word: "h", gp: [1,1,1,0]},
+{x: 123, y:100, word: "i", gp: [0,0,1,0]},
+{x: 123, y:350, word: "j", gp: [1,0,1,1]},
+{x: 123, y:550, word: "k", gp: [0,0,0,1]},
+{x: 123, y:200, word: "l", gp: [0,1,1,0]},
+]
+
+
+keypad = {x: 800, y:200, img:new Image()}
+
+pieces.forEach((piece, i) => {piece.height = 50, piece.width = 25 + 27 * piece.word.length, piece.y = 30 ; piece.x = (i) * 75 + 150})
+selected = null;
+offset = [0,0]
+distance = (a, b, c, d) => {return Math.sqrt((a-c)*(a-c) + (b-d)*(b-d))};
+
+const image = new Image()
+
+ s = "?????"
+
+ const complete = new Image();
+ complete.src = "complete.png"
+
+
+
+
+
+
+drawmore = true;
+
+function draw(){
+    if(!drawmore) return;
+    ctx.fillStyle = "#aaaacc";
+    ctx.fillRect(0, 0, 1200, 1200);
+    if(checkwin(600, 400)){
+        ctx.strokeStyle = "#00ff00";
+        ctx.lineWidth = 15;
+    }else{
+        ctx.strokeStyle = "#000000";
+        ctx.lineWidth = 5;   
+    }
+    ctx.beginPath();
+    ctx.arc(600, 400, 300, 0, 2 * Math.PI);
+    ctx.stroke()
+
+    if(checkwin(600, 800) && checkwin(600, 800) != checkwin(600, 400)){
+        ctx.strokeStyle = "#00ff00";
+        ctx.lineWidth = 15;
+    }else{
+        ctx.strokeStyle = "#000000";
+        ctx.lineWidth = 5;   
+    }
+    ctx.beginPath();
+        ctx.arc(600, 800, 300, 0, 2 * Math.PI);
+        ctx.stroke()
+
+if(checkwin(400,600) && checkwin(400, 600) != checkwin(600, 800) && checkwin(400, 600) != checkwin(600, 400)){
+        ctx.strokeStyle = "#00ff00";
+        ctx.lineWidth = 15;
+    }else{
+        ctx.strokeStyle = "#000000";
+        ctx.lineWidth = 5;   
+    }
+        ctx.beginPath();
+
+        ctx.arc(400, 600, 300, 0, 2 * Math.PI);
+        ctx.stroke()
+
+        if(checkwin(800,600) && checkwin(800, 600) != checkwin(400, 600) && checkwin(800, 600) != checkwin(600, 800) && checkwin(800, 600) != checkwin(600, 400)){
+        ctx.strokeStyle = "#00ff00";
+        ctx.lineWidth = 15;
+    }else{
+        ctx.strokeStyle = "#000000";
+        ctx.lineWidth = 5;   
+    }
+
+        ctx.beginPath();
+        ctx.arc(800, 600, 300, 0, 2 * Math.PI);
+        ctx.stroke()
+        ctx.fillStyle = "#111111";
+        ctx.font = "bold 40px monospace";
+                ctx.fillText("this", 550, 570)
+        ctx.fillText("riddle's", 512, 613)
+        ctx.fillText("code", 550, 653)
+ 	ctx.lineWidth = 2;   
+    pieces.reverse();
+    pieces.forEach(piece => {
+       
+      
+        /*ctx.strokeStyle = "#462c4b"
+        if(piece == selected){
+            ctx.strokeStyle = "#962c4b"
+        }
+        ctx.beginPath();
+        ctx.arc(piece.x, piece.y, rad + 1, 0, 2 * Math.PI);
+        ctx.lineWidth = 2;
+         
+        ctx.stroke();
+        ctx.fill();
+        */
+        ctx.fillStyle = "#eeeeee";
+        ctx.fillRect(piece.x, piece.y, piece.width, piece.height);
+        ctx.fillStyle = "#111111";
+    
+        ctx.font = "bold 50px monospace";
+        ctx.fillText(piece.word, piece.x + 10, piece.y+40)
+        ctx.strokeStyle = "#111111";
+        ctx.strokeRect(piece.x, piece.y, piece.width, piece.height);
+    });
+
+
+    pieces.reverse();
+
+    
+}
+
+
+function getPixel(img, x, y) {
+    return [1,1,1,x > 0 && y > 0 && x < img.width && y < img.height];
+    let canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    canvas.getContext('2d').drawImage(img, x, y, 1, 1, 0, 0, 1, 1);;
+    let pixelData = canvas.getContext('2d').getImageData(0, 0, 1, 1).data;
+    console.log(pixelData)
+    return pixelData;   
+}
+
+codestate = "question"
+
+function win(){
+    ctx.drawImage(complete, 0, 0);
+    drawmore = false;
+}
+
+function checkwin(a, b){
+    for(var j=0; j<4; j++){
+        won = true;
+        for(var i=0; i<pieces.length; i++){
+         
+            d = distance(a, b ,pieces[i].x+pieces[i].width/2, pieces[i].y + pieces[i].height/2);
+            if(d < 300  && !pieces[i].gp[j]){
+                won = false;
+            }
+            if(d > 300 && pieces[i].gp[j]){
+                won = false;
+            }
+           
+        }
+        if(won) return j+1;
+    }
+    return false;
+}
+
+
+
+canvas.onmousedown = e=>{
+  for(var i = 0; i<pieces.length; i++){
+    piece = pieces[i];
+    if(selected == piece) {
+        selected = null;
+        draw();
+        return;
+    }
+ 
+  }
+
+  for(var i = 0; i<pieces.length; i++){
+        piece = pieces[i];
+
+     if(e.offsetX - piece.x > 0 && e.offsetX - piece.x < piece.width && e.offsetY - piece.y > 0 && e.offsetY - piece.y < piece.height ){
+      
+       selected = piece;
+       offset = [e.offsetX - piece.x, e.offsetY - piece.y]
+       pieces = pieces.filter(p => p !== piece);
+        pieces.unshift(piece);
+
+       draw();
+        return;
+    }
+  }
+
+
+}
+
+canvas.onmouseup = e=>{
+     selected = null;
+}
+
+
+
+canvas.onmousemove = e => {
+    if(!selected) return;
+
+    selected.x = Math.min(Math.max(0, e.offsetX - offset[0]), 1200-selected.width)
+    selected.y = Math.min(Math.max(0,e.offsetY - offset[1]), 1200-selected.height);
+
+    draw();
+}
+
+
+draw();
+
+</script>
+</html>
