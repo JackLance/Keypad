@@ -29,11 +29,17 @@ check = (val) => {
             return;
         }
     }
-    if(list.includes(val2))
+    if(list.includes(val2)){
         col1.push(val2)
-    else
+        if(col1.length >= 12) scroll1 = 70 * (col1.length - 11.5)
+    }
+    else{
         col2.push(val2)
+        if(col2.length >= 12) scroll2 = 70 * (col2.length - 11.5)
+
+    }
         draw();
+    
 }
 canvas = document.getElementById ('gameCanvas' );
 ctx = canvas.getContext ('2d' );
@@ -103,6 +109,7 @@ list = [
 "forbid",
 "forget",
 "forgo",
+"forego",
 "foreknow",
 "forerun",
 "foresee",
@@ -292,7 +299,8 @@ pieces = [
 {x: 123, y:400, word: "choose", gp: 0},
 ]
 
-
+scroll1 = 0;
+scroll2 = 0;
 keypad = {x: 800, y:200, img:new Image()}
 
 pieces.forEach((piece, i) => {piece.height = 50, piece.width = 25 + 27 * piece.word.length, piece.y = 55 * (i%4) + 50; piece.x = 100 * (i - i%4) + 50})
@@ -316,23 +324,35 @@ draw();
 
 function draw(){
     if(!drawmore) return;
-    canvas.height = 500 + 70 * Math.max(col1.length, col2.length);
+
+    a = Math.min(Math.max(col1.length, col2.length), 11.5);
+    canvas.height = 500 + 70 * a;
 
     ctx.fillStyle = "#aaaacc";
 
-    ctx.fillRect(0, 0, 1200, 500 + 70 * Math.max(col1.length, col2.length));
+    ctx.fillRect(0, 0, 1200, 500 + 70 * a);
     
         ctx.fillStyle = "#000000";
         ctx.fillRect(50, 450, 1100, 5);
-        ctx.fillRect(598, 450, 5, 70 * Math.max(col1.length, col2.length));
+        ctx.fillRect(598, 450, 5, 70 * a);
     ctx.font = "bold 50px monospace";
     if(checkwin()) win();
     for(i = 0; i<col1.length; i++){
-        ctx.fillText("• " + col1[i], 200, i*70 + 505)
+        ctx.fillText("• " + col1[i], 200, i*70 + 505 - scroll1)
+    }
+    if(col1.length >= 12){
+        ctx.fillRect(588, 455 + (scroll1 * 11.5)/col1.length, 6, 11.5 * 11.5 * 70/col1.length);
     }
     for(i = 0; i<col2.length; i++){
-        ctx.fillText("• " + col2[i], 750, i*70 + 505)
+        ctx.fillText("• " + col2[i], 750, i*70 + 505 - scroll2)
     }
+    if(col2.length >= 12){
+        ctx.fillRect(1138, 455 + (scroll2 * 11.5)/col2.length, 6, 11.5 * 11.5 * 70/col2.length);
+    }
+
+     ctx.fillStyle = "#aaaacc";
+
+    ctx.fillRect(0, 0, 1200, 450);
   
     pieces.reverse();
     pieces.forEach(piece => {
@@ -433,10 +453,55 @@ canvas.onmouseup = e=>{
      selected = null;
 }
 
+window.onwheel = e => {
+    if(e.deltaY > 0){
+        if(col1.length >= 12 && e.offsetX < 600 && e.offsetY > 450){
+            scroll1 += 25;
+             if(scroll1 > 70 * (col1.length - 11.5)) scroll1 = 70 * (col1.length - 11.5);
+        
+        }
+        if(col2.length >= 12 && e.offsetX > 600 && e.offsetY > 450){
+            scroll2 += 25;
+            if(scroll2 > 70 * (col2.length - 11.5)) scroll2 = 70 * (col2.length - 11.5);
+        }
+       
+        
+    }else{
+        if(e.offsetX < 600 && e.offsetY > 450){
+            scroll1 -= 25;
+        }
+        if(e.offsetX > 600 && e.offsetY > 450){
+            scroll2 -= 25;
+        }
+        if(scroll1 < 0) scroll1 = 0;
+        if(scroll2 < 0) scroll2 = 0;
+    }
+   
+        draw();
+
+}
 
 
 canvas.onmousemove = e => {
-    if(!selected) return;
+    if(!selected) {
+        if(e.buttons != 1) return;
+        if(col1.length >= 12 && e.offsetX < 600 && e.offsetY > 450){
+            scroll1 -=  e.movementY;
+             if(scroll1 > 70 * (col1.length - 11.5)) scroll1 = 70 * (col1.length - 11.5);
+                     if(scroll1 < 0) scroll1 = 0;
+        }
+        if(col2.length >= 12 && e.offsetX > 600 && e.offsetY > 450){
+
+            scroll2 -=  e.movementY;
+
+              if(scroll2 > 70 * (col2.length - 11.5)) scroll2 = 70 * (col2.length - 11.5);
+                      if(scroll2 < 0) scroll2 = 0;
+
+        }
+        draw();
+      
+        return;
+    }
 
     selected.x = Math.min(Math.max(0, e.offsetX - offset[0]), 1200-selected.width)
     selected.y = Math.min(Math.max(0,e.offsetY - offset[1]), 1200-selected.height);
