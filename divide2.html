@@ -1,8 +1,10 @@
 <!doctype html>
-<html lang="en" style = "margin:0">
-<body style = "margin:0">
-    <div style = "margin:0">
-<canvas id="gameCanvas"></canvas>
+<html lang="en" >
+<body >
+    <div style = "display:flex">
+ 
+    </div>
+<canvas id="gameCanvas"width=1200 height=1200 ></canvas>
 </div>
 </body>
 <script>
@@ -38,15 +40,17 @@ start = {x:100, y:400, col:"#222222"}
 end = {x:700, y:400, col:"#222222"}
 
 
-cols = ["#2222dd", "#dd7722", "#22bb22",  "#dd22dd", "#22dddd", "#dddd22", ];
-
-
-
-balls = [start, end, {x:250, y:200, v: 0},  {x:250, y:600, v: 1}, {x:550, y:200, v: 1},  {x:550, y:600, v: 0},]
-
-lines = [{x1: -10000, x2: start.x, y1: start.y, y2: start.y, col:"#222222"}, {x1: end.x, x2: 10000, y1: end.y, y2: end.y, col:"#222222"}]
+cols = ["#4444ff", "#ff7744", "#44ff44",  "#ff44ff", "#44ffff", "#ffff44", ];
 
 path = []
+
+//balls = [start, end,   {x:400, y:200, v: 0},  {x:400, y:600, v: 0}]
+balls = [start, end, {x:250, y:200, v: 0},  {x:250, y:600, v: 1}, {x:550, y:200, v: 1},  {x:550, y:600, v: 0},]
+//balls = [start, end, {x:200, y:250, v: 2},  {x:200, y:550, v: 0}, {x:600, y:250, v: 1},  {x:600, y:550, v: 2},  {x:400, y:200, v: 1},  {x:400, y:600, v: 0}]
+
+//balls = [start, end, {x:200, y:250, v: 0},  {x:200, y:550, v: 1}, {x:600, y:250, v: 2},  {x:600, y:550, v: 3},  {x:400, y:200, v: 4},  {x:400, y:600, v: 5}]
+lines = [{x1: -10000, x2: start.x, y1: start.y, y2: start.y, col:"#222222"}, {x1: end.x, x2: 10000, y1: end.y, y2: end.y, col:"#222222"}]
+
 
 balls.forEach(ball => {
     ball.x += Math.random(), 
@@ -55,6 +59,9 @@ balls.forEach(ball => {
     ball.col = cols[ball.v]
     ball.col2 = ball.col
 })
+
+lines = [{x1: -10000, x2: start.x, y1: start.y, y2: start.y, col:"#222222"}, {x1: end.x, x2: 10000, y1: end.y, y2: end.y, col:"#222222"}]
+
 
 function arc(a, b, c, d){
     //if(Math.abs(Math.atan2(b[1]-a.y, b[0]-a.x) - Math.atan2(c[1]-a.y, c[0]-a.x)) < 0.3) return;
@@ -187,8 +194,8 @@ function itspolygontime(){
 
         if(hits.length == 0) return;
         ball.firsthit = hits[0]
-        a = "L"
-        b = "R"
+        a = "R"
+        b = "L"
         if(path[hits[0]].cw){
             [a, b] = [b, a];
         }
@@ -203,7 +210,6 @@ function itspolygontime(){
 
      })
 
-
      for(a of ["L", "R"]){
          for(i=0; i<path.length-1; i++){
             if(!edges[[i, a]]) continue;
@@ -212,29 +218,35 @@ function itspolygontime(){
             poly.push(path[i]);
             z = edges[[i,a]][0];
             edges[[i,a]] = false;
-            if(path[i].o.firsthit == i && ((a=="R")==(path[i].cw))){
+            poly.zs = [];
+            poly.letter = a;
+            poly.zs.push(z);
+            if(path[i].o != start && path[i].o != end &&path[i].o.firsthit == i && ((a=="R")!=(path[i].cw))){
                 path[i].o.done = true;
                 poly.balls.push(path[i].o)
             }
             while(z != i){
                 
-                if(path[z].o.firsthit == z && ((a=="R")==(path[z].cw))){
+                if(path[z].o != start && path[z].o != end && path[z].o.firsthit == z && ((a=="R")!=(path[z].cw))){
                     path[z].o.done = true;
                     poly.balls.push(path[z].o)
                 }
                 
                 poly.push(path[z]);
-                if(path[z].o == end) {
-                    val = {"L":10000, "R":-10000}[a]
+                if(edges[[z,a]][0] == path.length) {
+                    val = {"L":-10000, "R":10000}[a]
                     poly.push({o:{x:10000, y: 200}})
                     poly.push({o:{x:10000, y: val}})
                     poly.push({o:{x:-10000, y: val}})
                     poly.push({o:{x:-10000, y: 200}})
+                    edges[[z,a]] = false;
                     z = 0;
+                    poly.zs.push(z);
                 }
                 else{
                     temp= [z,a];
                     z = edges[temp][0];
+                    poly.zs.push(z);
                     edges[temp] = false;
                 }
             }
@@ -257,7 +269,6 @@ function itspolygontime(){
             if(ball == start || ball == end) return;
             for(var i=0; i<polygon.length; i++){
                 if(ball == polygon[i].o) {
-                  
                     return;
                 }
             }
@@ -288,7 +299,6 @@ function itspolygontime(){
                 fil = ball.col2;
             }
             if(fil != ball.col2){
-                console.log(ball.col2);
                 won = false;
                 fil = "#654321";
                 polygon.balls.forEach(b => {
@@ -319,14 +329,14 @@ function itspolygontime(){
 }
 
 function flashing(f){
-    f.forEach(ball => {
+   f.forEach(ball => {
         let bc = ball.col2;
-        setTimeout(() => {ball.col = "red"; draw()}, 150);
-        setTimeout(() => {ball.col = ball.col2; draw()}, 300);
-        setTimeout(() => {ball.col = "red"; draw()}, 450);
-        setTimeout(() => {ball.col = ball.col2; draw()}, 600);
-        setTimeout(() => {ball.col = "red"; draw()}, 750);
-        setTimeout(() => {ball.col = ball.col2; draw()}, 900);
+        setTimeout(() => {ball.col = "red"; draw()}, 200);
+        setTimeout(() => {ball.col = ball.col2; draw()}, 400);
+        setTimeout(() => {ball.col = "red"; draw()}, 600);
+        setTimeout(() => {ball.col = ball.col2; draw()}, 800);
+        setTimeout(() => {ball.col = "red"; draw()}, 1000);
+        setTimeout(() => {ball.col = ball.col2; draw()}, 1200);
     })
 }
 
@@ -396,12 +406,12 @@ function draw(checkfinal){
         else if(path[i].cw == false && path[i+1].cw ){
             
             theta = Math.acos(2*rad / distance(path[i].o.x, path[i].o.y, path[i+1].o.x, path[i+1].o.y));
-            rx = dx * Math.cos(theta) - dy * Math.sin(theta)
-            ry = dy * Math.cos(theta) + dx * Math.sin(theta)
-            arc(path[i].o, prev, [path[i].o.x -rx, path[i].o.y - ry]);
+            rx = dx * Math.cos(theta) + dy * Math.sin(theta)
+            ry = dy * Math.cos(theta) - dx * Math.sin(theta)
+            arc(path[i].o, prev, [path[i].o.x +rx, path[i].o.y + ry]);
             //ctx.lineTo(path[i].o.x - rx , path[i].o.y - ry );
-            ctx.lineTo(path[i+1].o.x + rx, path[i+1].o.y + ry);
-            prev = [path[i+1].o.x + rx, path[i+1].o.y + ry]
+            ctx.lineTo(path[i+1].o.x - rx, path[i+1].o.y - ry);
+            prev = [path[i+1].o.x - rx, path[i+1].o.y - ry]
 
         }
         else if(path[i].cw == undefined && path[i+1].cw ){
@@ -462,22 +472,44 @@ function draw(checkfinal){
              ctx.stroke();
 
      balls.forEach(ball => {
-       
-        if(ball == end && !pathstarted) return;
-        if(ball == start && (pathstarted || won )) return;
+        if(ball == end && !(!pathstarted && !path.size)) {
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, rad+3 , 0, 2 * Math.PI);
+            ctx.lineWidth = 2;
+            ctx.fillStyle = "#222222"
+            ctx.strokeStyle = "#222222"
+            ctx.fill();
+            ctx.stroke();
+            return;
+        }
+        if(ball == start && !(pathstarted  || won )){
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, rad +3, 0, 2 * Math.PI);
+            ctx.lineWidth = 2;
+            ctx.fillStyle = "#222222"
+            ctx.strokeStyle = "#222222"
+            ctx.fill();
+            ctx.stroke();
+            return;
+        }
+        //if(ball == start && (pathstarted || won )) return;
         //if(ball == start || ball == end) rad += 3
         ctx.fillStyle = ball.col
-        
         ctx.beginPath();
-        ctx.arc(ball.x, ball.y, rad , 0, 2 * Math.PI);
+        ctx.arc(ball.x, ball.y, rad + (ball.col == "red"?3:0), 0, 2 * Math.PI);
         ctx.lineWidth = 1;
         ctx.strokeStyle = "#222222"
 
         ctx.fill();
         ctx.stroke();
-        ctx.fillStyle = "#ffffff"
-        ctx.font = "bold 14px monospace";
-        if(colorblind && ball.v != undefined )ctx.fillText(ball.v+1, ball.x-4, ball.y+4)
+        ctx.fillStyle = (ball.v == 0 || ball.v == 1)?"#ffffff":"#000000"
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = "#000000"
+
+        ctx.font = "bold 20px monospace";
+        //if(colorblind && ball.v != undefined )ctx.strokeText(ball.v+1, ball.x-6, ball.y+6)
+        if(colorblind && ball.v != undefined )ctx.fillText(ball.v+1, ball.x-6, ball.y+6)
+
         //if(ball == start || ball == end) rad -= 3
        
     });
@@ -535,13 +567,7 @@ pathstarted = false;
 
 function moveto(nw){
     ok = true;
-    if(path.length >= 1 && path[path.length-1].o == end){
-        return;
-    }
-    if(path.length >= 2 && path[path.length-2].o == end){
-        path.splice(length-1, 1);
-        return;
-    }
+    
     savestate = structuredClone([path, balls, start, end]);
 
     for(var i=0; i<path.length-2; i++){
@@ -566,9 +592,11 @@ function moveto(nw){
         if(didone) return;
         if(ball == path[path.length-2].o) return;
         if(inside(ball.x, ball.y, path[path.length-2].o.x, path[path.length-2].o.y, path[path.length-1].o.x, path[path.length-1].o.y, nw.x, nw.y)){
+
             path[path.length-1] = {o:ball, cw: clockwise(ball.x, ball.y, path[path.length-2].o.x, path[path.length-2].o.y, nw.x, nw.y)}
             path.push({o: nw})
             didone = true;
+
         }
     });
 
@@ -594,7 +622,9 @@ function moveto(nw){
             c = path[j].o;
             d = path[j+1].o;
             if(a == c || a == d || b == c || b == d) continue;
-            if(crossing(a.x, a.y, b.x, b.y, c.x, c.y, d.x, d.y)) ok = false;
+            if(crossing(a.x, a.y, b.x, b.y, c.x, c.y, d.x, d.y)) {
+                ok = false;
+            }
         }
     }
 
@@ -603,8 +633,13 @@ function moveto(nw){
             a = path[i].o;
             b = path[i+1].o;
             c = lines[j];
-       
-            if(crossing(a.x, a.y, b.x, b.y, c.x1, c.y1, c.x2, c.y2)) ok = false;
+            if(a.x == c.x1 && a.y == c.y1) continue;
+            if(a.x == c.x2 && a.y == c.y2) continue;
+            if(b.x == c.x1 && b.y == c.y1) continue;
+            if(b.x == c.x2 && b.y == c.y2) continue;
+            if(crossing(a.x, a.y, b.x, b.y, c.x1, c.y1, c.x2, c.y2)) {
+                ok = false;
+            }
         }
     }
 
@@ -618,7 +653,7 @@ function moveto(nw){
 
 won = false;
 
-window.onmousemove = e => {
+canvas.onmousemove = e => {
     if(mousedown){
         camera[0] += (e.offsetX - mousedown[0])/camerazoom;
         camera[1] += (e.offsetY - mousedown[1])/camerazoom;
@@ -638,6 +673,7 @@ window.onmousemove = e => {
         }else{
             if(distance(end.x, end.y, e.offsetX, e.offsetY) < 5){
                 pathstarted = false;
+                //checkvalid
                 path[path.length-1] = {o: end}
             }
             moveto({x: e.offsetX, y: e.offsetY})
@@ -647,7 +683,7 @@ window.onmousemove = e => {
     draw();
 }
 
-window.onmousedown = e => {
+canvas.onmousedown = e => {
  
     mousedown = [e.offsetX, e.offsetY];
     pathstarted = false;
@@ -669,16 +705,8 @@ window.onkeydown = e => {
 
 draw();
 
-   function resize(){
-        canvas.height  = window.innerHeight - 10 ;
-   
-         canvas.width  = window.innerWidth   - 10;
-        draw()
-  }
+ 
 
-   resize()
-
-    window.addEventListener('resize', resize);
 
 </script>
 </html>
