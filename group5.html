@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="en">
+
+    <div>
+<canvas id="gameCanvas" width=1200 height=1200></canvas>
+</div>
+<div id = "nicetry">
+Nice try...
+</div>
+<input id = "input" style="font-size:25px;margin-left:450px; display:block" onchange = "check(this.value)">
+<script>
+
+document.getElementById ('nicetry' ).style.display = "none";
+check = (val) => {
+    document.getElementById ('nicetry' ).style.display = "none";
+
+    document.getElementById ('input' ).value = "";
+    val.toLowerCase();
+    val2 = "";
+    for(i of val){
+        if(i >= 'a' && i <= 'z'){
+            val2 += i;
+        }
+    }
+    for(j of pieces){
+        if(j.word == val){
+                document.getElementById ('nicetry' ).style.display = "";
+
+            return;
+        }
+    }
+    if(list.includes(val2)){
+        col1.push(val2)
+        if(col1.length >= 12) scroll1 = 70 * (col1.length - 11.5)
+    }
+    else{
+        col2.push(val2)
+        if(col2.length >= 12) scroll2 = 70 * (col2.length - 11.5)
+
+    }
+        draw();
+    
+}
+canvas = document.getElementById ('gameCanvas' );
+ctx = canvas.getContext ('2d' );
+
+rad = 15;
+
+list = [
+"abide",
+"arise",
+"awake",
+"backlight",
+"backslide",
+"be",
+"bear",
+"beat",
+"become",
+"befall",
+"beset",
+"beget",
+"begin",
+"behold",
+"bend",
+"bet",
+"bespeak",
+"beware",
+"bid",
+"bide",
+"bind",
+"bite",
+"bleed",
+"blow",
+"break",
+"breed",
+"bring",
+"broadcast",
+"build",
+"burn",
+"burst",
+"buy",
+"cast",
+"catch",
+"choose",
+"clad",
+"cleave",
+"cling",
+"come",
+"cost",
+"creep",
+"cut",
+"deal",
+"dig",
+"dive",
+"do",
+"draw",
+"daydream",
+"dream",
+"drink",
+"drive",
+"eat",
+"fall",
+"feed",
+"feel",
+"fight",
+"find",
+"fling",
+"fly",
+"forbid",
+"forget",
+"forgo",
+"forego",
+"foreknow",
+"forerun",
+"foresee",
+"foretell",
+"forespeak",
+"forgive",
+"forsake",
+"freeze",
+"get",
+"give",
+"go",
+"ghostwrite",
+"grind",
+"grow",
+"handwrite",
+"hang",
+"have",
+"hear",
+"hide",
+"hit",
+"hold",
+"hurt",
+"inlay",
+"input",
+"inset",
+"interlay",
+"interweave",
+"keep",
+"kneel",
+"knit",
+"know",
+"lay",
+"lead",
+"lean",
+"leap",
+"leave",
+"lend",
+"let",
+"lie",
+"prepay",
+"light",
+"lose",
+"make",
+"misspeak",
+"misdeal",
+"misgive",
+"mishear",
+"mislead",
+"misread",
+"misspeak",
+"misunderstand",
+"mean",
+"meet",
+"mow",
+"must",
+"offset",
+"outbid",
+"output",
+"overtake",
+"overdo",
+"outgrow",
+"outrun",
+"outsell",
+"outshine",
+"overtake",
+"overcome",
+"overeat",
+"overhear",
+"overshoot",
+"overthink",
+"overthrow",
+"overwrite",
+"partake",
+"pay",
+"prebuild",
+"precut",
+"premake",
+"preset",
+"put",
+"read",
+"redo",
+"rebuild",
+"redeal",
+"recut",
+"regrow",
+"rehear",
+"retell",
+"remake",
+"reread",
+"rerun",
+"rethink",
+"redraw",
+"reset",
+"reteach",
+"rewrite",
+"ride",
+"ring",
+"rise",
+"run",
+"slay",
+"say",
+"see",
+"sell",
+"send",
+"set",
+"sew",
+"shake",
+"shear",
+"shed",
+"shit",
+"shine",
+"shoot",
+"show",
+"shrink",
+"shut",
+"sing",
+"sink",
+"sit",
+"sightsee",
+"sleep",
+"slide",
+"smell",
+"sow",
+"speak",
+"spend",
+"spit",
+"spread",
+"stand",
+"steal",
+"stick",
+"sting",
+"stink",
+"strike",
+"swear",
+"sweep",
+"swell",
+"swim",
+"swing",
+"take",
+"teach",
+"tear",
+"tell",
+"think",
+"throw",
+"unbend",
+"undo",
+"underdo",
+"undercut",
+"underfeed",
+"underpay",
+"undertake",
+"understand",
+"underlie",
+"undergo",
+"unlearn",
+"unstick",
+"unwind",
+"upset",
+"wake",
+"wear",
+"weep",
+"wet",
+"win",
+"withdraw",
+"withhold",
+"withstand",
+"wind",
+"wring",
+"write",]
+
+col1 = ["forget"]
+col2 = ["remember"]
+
+pieces = [
+
+{x: 123, y:550, word: "run", gp: 0},
+{x: 123, y:350, word: "love", gp: 1},
+{x: 123, y:100, word: "pretend", gp:1},
+{x: 123, y:450, word: "communicate", gp: 1},
+{x: 123, y:150, word: "discover", gp: 1},
+{x: 123, y:500, word: "try", gp: 1},
+{x: 123, y:250, word: "overthink", gp: 0},
+{x: 123, y:300, word: "fear", gp: 1},
+{x: 123, y:650, word: "withstand", gp: 0},
+{x: 123, y:200, word: "slide", gp: 0},
+{x: 123, y:600, word: "read", gp: 0},
+{x: 123, y:400, word: "choose", gp: 0},
+]
+
+scroll1 = 0;
+scroll2 = 0;
+keypad = {x: 800, y:200, img:new Image()}
+
+pieces.forEach((piece, i) => {piece.height = 50, piece.width = 25 + 27 * piece.word.length, piece.y = 55 * (i%4) + 50; piece.x = 100 * (i - i%4) + 50})
+selected = null;
+offset = [0,0]
+distance = (a, b, c, d) => {return Math.sqrt((a-c)*(a-c) + (b-d)*(b-d))};
+
+const image = new Image()
+
+ s = "?????"
+
+ const complete = new Image();
+ complete.src = "complete.png"
+
+
+
+
+
+drawmore = true;
+draw();
+
+function draw(){
+    if(!drawmore) return;
+
+    a = Math.min(Math.max(col1.length, col2.length), 11.5);
+    canvas.height = 500 + 70 * a;
+
+    ctx.fillStyle = "#aaaacc";
+
+    ctx.fillRect(0, 0, 1200, 500 + 70 * a);
+    
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(50, 450, 1100, 5);
+        ctx.fillRect(598, 450, 5, 70 * a);
+    ctx.font = "bold 50px monospace";
+    if(checkwin()) win();
+    for(i = 0; i<col1.length; i++){
+        ctx.fillText("• " + col1[i], 200, i*70 + 505 - scroll1)
+    }
+    if(col1.length >= 12){
+        ctx.fillRect(588, 455 + (scroll1 * 11.5)/col1.length, 6, 11.5 * 11.5 * 70/col1.length);
+    }
+    for(i = 0; i<col2.length; i++){
+        ctx.fillText("• " + col2[i], 750, i*70 + 505 - scroll2)
+    }
+    if(col2.length >= 12){
+        ctx.fillRect(1138, 455 + (scroll2 * 11.5)/col2.length, 6, 11.5 * 11.5 * 70/col2.length);
+    }
+
+     ctx.fillStyle = "#aaaacc";
+
+    ctx.fillRect(0, 0, 1200, 450);
+  
+    pieces.reverse();
+    pieces.forEach(piece => {
+       
+      
+        /*ctx.strokeStyle = "#462c4b"
+        if(piece == selected){
+            ctx.strokeStyle = "#962c4b"
+        }
+        ctx.beginPath();
+        ctx.arc(piece.x, piece.y, rad + 1, 0, 2 * Math.PI);
+        ctx.lineWidth = 2;
+         
+        ctx.stroke();
+        ctx.fill();
+        */
+        ctx.fillStyle = "#eeeeee";
+        ctx.fillRect(piece.x, piece.y, piece.width, piece.height);
+        ctx.fillStyle = "#111111";
+    
+        ctx.font = "bold 50px monospace";
+        ctx.fillText(piece.word, piece.x + 10, piece.y+40)
+        ctx.strokeStyle = "#111111";
+        ctx.strokeRect(piece.x, piece.y, piece.width, piece.height);
+    });
+
+
+    pieces.reverse();
+
+    
+}
+
+
+
+codestate = "question"
+
+function win(){
+    ctx.drawImage(complete, 0, 0);
+    drawmore = false;
+}
+
+function checkwin(){
+        won1 = true;
+        won2 = true;
+        for(var i=0; i<pieces.length; i++){
+            if(pieces[i].y < 450){
+                won1 = false;
+                won2 = false;
+            }
+            if(pieces[i].x > 580 && pieces[i].gp){
+                won1 = false;
+            }
+            if(pieces[i].x > 580 && !pieces[i].gp){
+                won2 = false;
+            }
+            if(pieces[i].x + pieces[i].width < 620 && !pieces[i].gp){
+                won1 = false;
+            }
+            if(pieces[i].x + pieces[i].width < 620 && pieces[i].gp){
+                won2 = false;
+            }
+        }
+        if(won2 ) return true;
+    return false;
+}
+
+
+canvas.onmousedown = e=>{
+  for(var i = 0; i<pieces.length; i++){
+    piece = pieces[i];
+    if(selected == piece) {
+        selected = null;
+        draw();
+        return;
+    }
+ 
+  }
+
+  for(var i = 0; i<pieces.length; i++){
+        piece = pieces[i];
+
+     if(e.offsetX - piece.x > 0 && e.offsetX - piece.x < piece.width && e.offsetY - piece.y > 0 && e.offsetY - piece.y < piece.height ){
+      
+       selected = piece;
+       offset = [e.offsetX - piece.x, e.offsetY - piece.y]
+       pieces = pieces.filter(p => p !== piece);
+        pieces.unshift(piece);
+
+       draw();
+        return;
+    }
+  }
+
+
+}
+
+canvas.onmouseup = e=>{
+     selected = null;
+}
+
+window.onwheel = e => {
+    if(e.deltaY > 0){
+        if(col1.length >= 12 && e.offsetX < 600 && e.offsetY > 450){
+            scroll1 += 25;
+             if(scroll1 > 70 * (col1.length - 11.5)) scroll1 = 70 * (col1.length - 11.5);
+        
+        }
+        if(col2.length >= 12 && e.offsetX > 600 && e.offsetY > 450){
+            scroll2 += 25;
+            if(scroll2 > 70 * (col2.length - 11.5)) scroll2 = 70 * (col2.length - 11.5);
+        }
+       
+        
+    }else{
+        if(e.offsetX < 600 && e.offsetY > 450){
+            scroll1 -= 25;
+        }
+        if(e.offsetX > 600 && e.offsetY > 450){
+            scroll2 -= 25;
+        }
+        if(scroll1 < 0) scroll1 = 0;
+        if(scroll2 < 0) scroll2 = 0;
+    }
+   
+        draw();
+
+}
+
+
+canvas.onmousemove = e => {
+    if(!selected) {
+        if(e.buttons != 1) return;
+        if(col1.length >= 12 && e.offsetX < 600 && e.offsetY > 450){
+            scroll1 -=  e.movementY;
+             if(scroll1 > 70 * (col1.length - 11.5)) scroll1 = 70 * (col1.length - 11.5);
+                     if(scroll1 < 0) scroll1 = 0;
+        }
+        if(col2.length >= 12 && e.offsetX > 600 && e.offsetY > 450){
+
+            scroll2 -=  e.movementY;
+
+              if(scroll2 > 70 * (col2.length - 11.5)) scroll2 = 70 * (col2.length - 11.5);
+                      if(scroll2 < 0) scroll2 = 0;
+
+        }
+        draw();
+      
+        return;
+    }
+
+    selected.x = Math.min(Math.max(0, e.offsetX - offset[0]), 1200-selected.width)
+    selected.y = Math.min(Math.max(0,e.offsetY - offset[1]), 1200-selected.height);
+
+    draw();
+}
+
+
+draw();
+
+</script>
+</html>
