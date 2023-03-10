@@ -13,7 +13,15 @@ canvas = document.getElementById ('gameCanvas' );
 ctx = canvas.getContext ('2d' );
 
 rad = 15;
-pieces = [{x: 140, y:224}, {x: 265, y:224}, {x: 387, y:224}, {x: 340, y:345}, {x: 265, y:345}, {x: 187, y:345}, {x: 140, y:466}, {x: 365, y:466}, ]
+pieces = [
+    {x: 40, y:40},
+    {x: 450, y:580}, 
+    {x: 50, y:344},
+    {x: 350, y:45},
+    {x: 300, y:345},
+    {x: 140, y:545}, 
+    {x: 500, y:346}, 
+    {x: 540, y:96}, ]
 keypad = {x: 800, y:200, img:new Image()}
 
 pieces.forEach(piece => {piece.img = new Image()})
@@ -28,16 +36,16 @@ const image = new Image()
  const complete = new Image();
  complete.src = "complete.png"
 
-pieces[0].img.src = "finaljig1.png";
+pieces[0].img.src = "finaljig4.png";
 pieces[1].img.src = "finaljig2.png";
-pieces[2].img.src = "finaljig3.png";
-pieces[3].img.src = "finaljig4.png";
-pieces[4].img.src = "finaljig5.png";
-pieces[5].img.src = "finaljig6.png";
-pieces[6].img.src = "finaljig7.png";
-pieces[7].img.src = "finaljig8.png";
+pieces[2].img.src = "finaljig7.png";
+pieces[3].img.src = "finaljig1.png";
+pieces[4].img.src = "finaljig3.png";
+pieces[5].img.src = "finaljig8.png";
+pieces[6].img.src = "finaljig6.png";
+pieces[7].img.src = "finaljig5.png";
 
-keypad.img.src = "pad4.png";
+keypad.img.src = "pad.png";
 keypad.img.addEventListener("load", (e) => {
     keypad.img.width/=4;
     keypad.img.height/=4;
@@ -157,7 +165,7 @@ canvas.onmousedown = e=>{
        if(asd[1] < 0.75 || n == 0){
         s = s[1] + s[2] + s[3] + s[4] + s[5] + n
         if(s[0] != '?'){
-            if(s != "607435"){
+            if(s != "543781"){
                 codestate = "wrong"
             }else{
                 codestate = "right"
