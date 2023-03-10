@@ -133,7 +133,7 @@ canvas.onmousedown = e=>{
         canv.height = piece.img.height;
         canv.getContext('2d').drawImage(piece.img, 0, 0, piece.img.width, piece.img.height);
 
-        console.log(canv.getContext('2d').getImageData(e.offsetX - piece.x, e.offsetY - piece.y, 1, 1).data);
+        if(canv.getContext('2d').getImageData(e.offsetX - piece.x, e.offsetY - piece.y, 1, 1).data[3] == 0) continue;
 
        selected = piece;
        offset = [e.offsetX - piece.x, e.offsetY - piece.y]
