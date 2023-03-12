@@ -1,0 +1,3434 @@
+<!doctype html>
+<html lang="en" style = "margin:0">
+<body style = "">
+    <div style = "">
+        <div id = "main" style = "width:  78%;">
+
+            Hello and welcome to rt 3 search
+        </div>
+<canvas id="gameCanvas"></canvas>
+</div>
+</body>
+<br> <br> 
+<button type = "button" onclick = "returntomap()" id="ret" style="margin:auto; display:block">Go to map</button>
+<style>
+
+html{
+    background:  #ddddff;
+}
+
+div{
+    font-family:  sans-serif;
+    font-size: 15pt;
+    margin-left:  auto;
+    margin-right: auto;
+    
+
+}
+
+iframe{
+    width: 80%;
+    aspect-ratio: 16 / 9;
+    display:block;
+    margin: auto;
+}
+
+.rule{
+    margin-top:  10px;
+    margin-bottom:  10px;
+    padding: 5px;
+    background: #eeddee;
+    text-align: center;
+    outline: 3px solid #bb0000;
+    border-radius:  5px;
+}
+
+img{
+    width:  100%;
+}
+canvas {
+    margin-top:  10px;
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+    outline: 3px solid #000077;
+    border-radius:  10px;
+}
+
+input {
+    margin-left:  auto;
+    margin-right: auto;
+    display: block;
+}
+    </style>
+<script>
+
+canvas = document.getElementById ('gameCanvas' );
+button = document.getElementById ('ret' );
+div = document.getElementById ('main' );
+
+ctx = canvas.getContext ('2d' );
+
+
+riddles = [
+{x: 100, y: 100, solved: true, name: "intro0", code:intro0, unlocked: true},
+{x: 200, y: 100, name: "intro1", code: intro1, unlocked: true}, 
+{x: 300, y: 100, name: "intro2", code: intro2}, 
+{x: 400, y: 50, name: "intro3", code: intro3},
+{x: 400, y: 150, name: "intro4", code: intro4},
+{x: 500, y: 100, name: "intro5", code: intro5},
+{x: 400, y: -50, name: "introb1", code: intro3},
+{x: 400, y: 250, name: "introb2", code: intro3},
+
+{x: 800, y: -150, name: "keypad1", code: keypad1},
+{x: 900, y: -150, name: "keypad3", code: keypad3},
+{x: 1000, y: -75, name: "keypad2", code: keypad2},
+{x: 1000, y: -225, name: "keypad4", code: keypad4},
+{x: 1100, y: -150, name: "keypad5", code: keypad5},
+{x: 1200, y: -150, name: "keypad6", code: keypad6},
+
+{x: 1600, y: -150, name: "group1", code: group1},
+{x: 1700, y: -150, name: "group3", code: group3},
+{x: 1800, y: -225, name: "group2", code: group2},
+{x: 1900, y: -225, name: "group4", code: group4},
+{x: 1800, y: -75, name: "group5", code: group5},
+{x: 1900, y: -75, name: "group6", code: group6},
+{x: 2000, y: -150, name: "group7", code: group7},
+
+
+{x: 1600, y: 400, name: "nexus1", code: nexus1},
+{x: 1700, y: 475, name: "nexus2", code: nexus1},
+{x: 1800, y: 475, name: "nexus3", code: nexus1},
+{x: 1700, y: 325, name: "nexus4", code: nexus1},
+{x: 1800, y: 325, name: "nexus5", code: nexus1},
+{x: 1900, y: 400, name: "nexus6", code: nexus1},
+
+{x: 800, y: 400, name: "qr1", code: qr1},
+{x: 1000, y: 150, name: "qr2", code: qr2},
+{x: 1000, y: 250, name: "qr3", code: qr3},
+{x: 1000, y: 350, name: "qr4", code: qr4},
+{x: 1000, y: 450, name: "qr5", code: qr5},
+{x: 1000, y: 550, name: "qr6", code: qr6},
+{x: 1000, y: 650, name: "qr7", code: qr7},
+{x: 1000, y: 750, name: "qr8", code: qr8},
+{x: 1200, y: 400, name: "qr9", code: qr9},
+
+{x: 2400, y: -150, name: "magic", code: magic},
+
+{x: 2400, y: 400, name: "divide1", code: divide1},
+
+]
+
+riddlesbyname = {}
+riddles.forEach(riddle => {riddlesbyname[riddle.name] = riddle})
+
+connections = [
+["intro0", "intro1"], 
+["intro1", "intro2"], 
+["intro2", "intro3"], 
+["intro2", "intro4"],
+["intro3", "intro5"], 
+["intro4", "intro5"],
+["intro3", "introb1"], 
+["intro4", "introb2"],
+
+["intro5", "keypad1"],
+["keypad1", "keypad3"],
+["keypad3", "keypad2"],
+["keypad3", "keypad4"],
+["keypad2", "keypad5"],
+["keypad4", "keypad5"],
+["keypad5", "keypad6"],
+
+["intro5", "qr1"],
+["qr1", "qr2"],
+["qr1", "qr3"],
+["qr1", "qr4"],
+["qr1", "qr5"],
+["qr1", "qr6"],
+["qr1", "qr7"],
+["qr7", "qr8"],
+["qr2", "qr9"],
+["qr3", "qr9"],
+["qr4", "qr9"],
+["qr5", "qr9"],
+["qr6", "qr9"],
+["qr7", "qr9"],
+
+["qr9", "group1"],
+["keypad5", "group1"],
+["group1", "group3"],
+["group3", "group2"],
+["group3", "group5"],
+["group2", "group4"],
+["group5", "group6"],
+["group4", "group7"],
+["group6", "group7"],
+
+["qr9", "nexus1"],
+["keypad5", "nexus1"],
+["nexus1", "nexus2"],
+["nexus2", "nexus3"],
+["nexus1", "nexus4"],
+["nexus4", "nexus5"],
+["nexus3", "nexus6"],
+["nexus5", "nexus6"],
+
+["nexus6", "magic"],
+["group7", "magic"],
+
+["nexus6", "divide1"],
+["group7", "divide1"],
+
+
+]
+
+distance = (a, b, c, d) => {return Math.sqrt((a-c)*(a-c) + (b-d)*(b-d))};
+
+
+function maindraw(checkfinal){
+         
+    ctx.fillStyle = "#eeeeee";
+    ctx.fillRect(0,0,4000,4000)
+
+
+    connections.forEach(conn => {
+        ctx.lineWidth = 10 * camerazoom;
+        if(conn[0][0] == conn[1][0]){
+            ctx.setLineDash([]);
+
+        }else{
+            ctx.setLineDash([5 * camerazoom, 10 * camerazoom]);
+
+        }
+        ctx.beginPath();
+        ctx.moveTo(camerazoom * (riddlesbyname[conn[0]].x - camera[0]), camerazoom * (riddlesbyname[conn[0]].y - camera[1]));
+        ctx.lineTo(camerazoom * (riddlesbyname[conn[1]].x - camera[0]), camerazoom * (riddlesbyname[conn[1]].y - camera[1]));
+        ctx.stroke();
+    })
+
+    riddles.forEach(riddle => {
+
+        ctx.beginPath();
+        ctx.arc(camerazoom * (riddle.x - camera[0]), camerazoom * (riddle.y  - camera[1]), 25 * camerazoom, 0, 2 * Math.PI);
+        ctx.lineWidth = 3 * camerazoom;
+         
+        if(riddle.solved) {
+            ctx.fillStyle = "#11ee11";
+            ctx.setLineDash([]);
+        }
+        else if(riddle.unlocked) {
+            ctx.fillStyle = "#eeee11";
+        }
+        else {
+            ctx.fillStyle = "#ee1111";
+
+            ctx.setLineDash([2 * camerazoom, 2 * camerazoom]);
+        }
+        ctx.fill();
+        ctx.stroke();
+    })
+    ctx.setLineDash([]);
+}
+
+camerazoom = 1;
+camera = [0,0]
+mousedown = false;
+firstvisit = true;
+function returntomap(){
+        rat = 0.75;
+        resize();
+    mousedown = false;
+    ret.innerHTML = `Return to map`
+    div.innerHTML = `
+    &nbsp;&nbsp;&nbsp;&nbsp;This is the riddle map, which will update with your status as you make progress. <br>
+    &nbsp;&nbsp;&nbsp;&nbsp;You can drag the map around with the mouse, and zoom in and out with the mousewheel, or by pressing control and plus or minus. 
+    `
+    if(firstvisit){
+        div.innerHTML +=
+        `<br>&nbsp;&nbsp;&nbsp;&nbsp;The leftmost circle, marked in green, is the introduction that you just came from. It's marked in green to indicate that you've completed it, but you can still return to it at any time if you'd like. <br>
+    &nbsp;&nbsp;&nbsp;&nbsp;The riddle connected to that, marked in yellow, is the only one you have access to right now, so you can click that circle to begin. `
+    }
+    firstvisit = false;
+     draw = maindraw;
+     hp = 0.8, wp = 0.8;
+     resize();
+     canvas.style.display = ""
+     canvas.onmousedown = e => {
+        clickx = (e.offsetX / camerazoom) + camera[0];
+        clicky = (e.offsetY / camerazoom) + camera[1];
+        riddles.forEach(riddle => { 
+            //if(!riddle.unlocked) return;
+            if(distance(clickx, clicky, riddle.x, riddle.y) < 27){
+                ret.style.display = "block";
+                riddle.code();
+            }
+        });
+        //console.log(e);
+        mousedown = [e.offsetX, e.offsetY];
+       
+    }
+
+    ret.style.display = "none";
+
+    canvas.onmousemove = e => {
+        if(mousedown){
+            camera[0] -= (e.offsetX - mousedown[0])/camerazoom;
+            camera[1] -= (e.offsetY - mousedown[1])/camerazoom;
+            mousedown = [e.offsetX, e.offsetY]
+
+        }
+        draw();
+    }
+
+
+
+    window.onmouseup = e => {
+        mousedown = false;
+    }
+
+    window.onkeydown = e => {
+       
+        
+    }
+
+    window.onwheel = e => {
+        if(e.deltaY < 0){
+            camerazoom += .1;
+        }else{
+            camerazoom -= .1;
+        }
+        if(camerazoom < .2){
+            camerazoom = .2;
+        }
+        if(camerazoom > 5){
+            camerazoom = 5;
+        }
+            draw();
+
+    }
+
+
+}
+
+function returndraw(checkfinal){
+         
+
+
+    ctx.fillStyle = "#eeeeee";
+    ctx.fillRect(0,0,4000,4000)
+    ctx.beginPath();
+    ctx.arc(100, 100, 25, 0, 2 * Math.PI);
+    ctx.lineWidth = 2;
+         
+      
+    ctx.fillStyle = "#ffff00";
+    ctx.fill();
+    ctx.stroke();
+
+    
+
+}
+
+ draw = maindraw;
+
+
+
+rat = 0.75
+
+function resize(){
+    canvas.height  = Math.min(window.innerWidth * 0.8 * rat, window.innerHeight * 0.8) ;
+    canvas.width  = Math.min(window.innerWidth * 0.8, window.innerHeight * 0.8 / rat);
+    draw();
+}
+
+setInterval(() => {draw()}, 100)
+resize()
+group6();
+window.addEventListener('resize', resize);
+
+function solve(riddle){
+    riddlesbyname[riddle].solved = true;
+    connections.forEach(conn => {
+        if(conn[0] == riddle){
+
+            riddlesbyname[conn[1]].unlocked = true;
+        }
+    })
+    returntomap();
+}
+
+function intro0(){
+    div.innerHTML = `
+     <br><br><b>Welcome to the first Root Three Riddle Search!</b> <br> <br> &nbsp;&nbsp;&nbsp;&nbsp;
+    If you missed the announcement, the reason this search is being held today is that rt(3) ≈ 1.73, and today is January 73rd, (counting February 1st as January 32nd, February 2nd as January 33rd, and so on.) Coincidentally, '23 is a pretty nice year for this, as the square root of three can technically be written as ²√3. Using the above logic, Rt(3) Day falls on March 14th, or March 13th on leap years. Surprisingly, "thirteenth" and "fourteenth" both contain "rt", and March is month 3 of the year, so it's a very suitable time to celebrate rt(3). :) <br> &nbsp;&nbsp;&nbsp;&nbsp;
+        √3 is a constant generally associated with equilateral triangles, so if you want to celebrate rt(3) day, you could have some Doritos, hamentash, or a Toblerone. In fact, some places, like 7-11 and Blaze, even have pizza sales for rt(3) day, because a slice of pizza can look a lot like an equilateral triangle. Or you could just have root beer, rutabega, and other root vegetables. I think it should be a national holiday, but I know that's a pretty <i> radical </i> idea (you could call me a three-thinker.) If I had wanted to use more decimal places, rt(3) ≈ 1.732051, so I would have had to wait until 1/73/2051, about thirty years from now, before running this riddle search. But I didn't want 2cos(30) years is a pretty long time.<br><br><br> &nbsp;&nbsp;&nbsp;&nbsp;
+        I think riddle searching can be a pretty hard hobby to get into, especially because for so many people, the first one they get exposed to is the annual Harvard Riddle Search. It can be intimidating and opaque for newer searchers, as the rules and conventions aren't documented anywhere. I decided to make this as an introduction for anyone who hasn't done a riddle search before, in order to explain what to expect from other riddle searches without assuming prior knowledge.<br>&nbsp;&nbsp;&nbsp;&nbsp;
+        This riddle search is intended to be completed by one or two people, rather than a big team. If you solve with more than one person, you can sync your progress by []. The site has been checked in Chrome and Firefox, and probably won't work on mobile. Also, one rule before getting started:
+            <div class="rule"><b>You are not allowed to the view the source-code for any of the riddles in this search.</b></div>
+
+        &nbsp;&nbsp;&nbsp;&nbsp;(You may be wondering what there is to prevent you from just breaking the rule. While it's true that there's no way I can enforce this, you can think of it as a sudoku in a newspaper. There's technically nothing preventing you from plugging it into an online solver and copying down the solution, but you haven't really done the sudoku in that case, you just copied some numbers. To truly do this riddle search, you'll have to obey any rules in red boxes like the one above.)<br> &nbsp;&nbsp;&nbsp;&nbsp;
+         To start, click on "Go to map" below.
+         <br> &nbsp;&nbsp;&nbsp;&nbsp;
+    
+    
+    `
+
+     canvas.style.display = "none";
+}
+
+function intro1(){
+    div.innerHTML = `
+     <br><br>&nbsp;&nbsp;&nbsp;&nbsp;So, what exactly are riddles? You may be familiar with the word "riddle" to mean just those Sphynx-like word riddles, but to riddle enthusiasts, "riddle" means so much more than that. It's hard to exactly define because there's so many types of riddles, but very generally, a riddle is something with an objective, and the fun derives from understanding what the objective is, or understanding how to achieve the objective. If it sounds like that encompasses a lot, that's because it does! A riddle can be anything, from whodunits, to matchstick riddles, to riddles which don't even look like anything recognizable.  <br><br>&nbsp;&nbsp;&nbsp;&nbsp;
+    For this riddle, look at the image below, and then type the code in the box below once you think you know it. You'll be told when you've got it right, and will be allowed to move on to the next riddle. <br> <br>
+    <img src = "intro1.png" > 
+    <input onchange = "check(this.value)"> </input>
+    `
+
+    check = (val) => {
+        if(val.toLowerCase() == "perforated"){
+            solve("intro1")
+
+        }
+    }
+
+    canvas.style.display = "none";
+
+
+}
+
+function intro2(){
+    div.innerHTML = `
+    <br><br>&nbsp;&nbsp;&nbsp;&nbsp;
+    A riddle search is divided into several riddle-sequences, also just called sequences. A sequence comprises of any amount of riddles connected in some way. Like the explanation of what a riddle is, it's hard to pin down exactly what a riddle is, but generally a sequence has some idea in common throughout, the first riddle in the sequence introduces the concept, and then it gets iterated on and develops in various ways.<br>&nbsp;&nbsp;&nbsp;&nbsp;
+    The riddles within a sequence can be completed independently. By that, I mean to say that you won't need information from one riddle to solve another, and once you're finished with a riddle, you won't need anything from it. (So for instance, you don't need to keep the code to the previous riddle now that you've completed it, as no other riddle will need it.) <br><br>&nbsp;&nbsp;&nbsp;
+    There should be an embedded video below, if it's not showing up, you can also watch <a href = "https://www.youtube.com/watch?v=Pt6ICemT2Vs"> here</a>.
+    <br><br>
+    <iframe 
+    src="https://www.youtube.com/embed/Pt6ICemT2Vs">
+    </iframe><br>
+    <input onchange = "check(this.value)"> </input>
+    `
+
+    check = (val) => {
+        if(val.toLowerCase() == "outofframe" || val.toLowerCase() == "out of frame"){
+            solve("intro2")
+
+        }
+    }
+
+    canvas.style.display = "none";
+}
+
+function intro3(){
+    div.innerHTML = `
+    <br><br>&nbsp;&nbsp;&nbsp;&nbsp;
+    The sequence just branched on the map, so you have multiple riddles unlocked on the map at once. Every riddle page has a "Return to map" button so if you get stuck you can try another riddle you have access to. Because of the branching structure, you won't need to complete every riddle to finish the search. <br>
+    <img src = "intro3.gif" > 
+    <input onchange = "check(this.value)"> </input>
+    `
+
+    check = (val) => {
+        if(val.toLowerCase() == "millimeter"){
+            solve("intro3")
+
+        }
+    }
+
+    canvas.style.display = "none";
+}
+
+function intro4(){
+    div.innerHTML = `
+    
+    <br><br>&nbsp;&nbsp;&nbsp;&nbsp;
+    The sequence just branched on the map, so you have multiple riddles unlocked on the map at once. Every riddle page has a "Return to map" button so if you get stuck you can try another riddle you have access to. Because of the branching structure, you won't need to complete every riddle to finish the search. <br>
+    There should be an embedded video below, if it's not showing up, you can also watch <a href = "https://www.youtube.com/watch?v=g9SqswHhO6Y"> here</a>.
+    <iframe 
+    src="https://www.youtube.com/embed/g9SqswHhO6Y">
+    </iframe><br>
+    <input onchange = "check(this.value)"> </input>
+    `
+
+    check = (val) => {
+        if(val.toLowerCase() == "noisemaker" || val.toLowerCase() == "noise maker"){
+            solve("intro3")
+
+        }
+    }
+
+    canvas.style.display = "none";
+}
+
+function intro5(){
+    div.innerHTML = `
+    <br><br>&nbsp;&nbsp;&nbsp;&nbsp;Sequences usually end with a "finale riddle". There are a few ways of doing a finale riddle, but it often subverts some expectation or breaks some rule that has been established in the sequence. Sometimes, it takes the concept one step further in some way, or sometimes it uses the same logic, but requires a new perspective to solve. It's good to stay aware of when you're on the last riddle of a sequence so you can be a little more on-your-toes for gimmicks. A finale riddle may be the hardest one of the sequence, but it doesn't necessarily have to be bigger or more difficult than the rest of the sequence. Sometimes it's just a silly little trick, or showing off an interesting consequence of established rules, or providing closure to the sequence in some other way. 
+    
+    <img src = "intro5.png" > 
+    <input onchange = "check(this.value)"> </input>
+    `
+
+    check = (val) => {
+        if(val.toLowerCase() == "is"){
+            solve("intro5")
+
+        }
+    }
+
+    canvas.style.display = "none";
+}
+
+function intro6() {
+    //chinese bonus
+
+}
+
+function intro7() {
+    //readlips bonus
+}
+
+function keypad1(){
+    div.innerHTML = `
+        <br><br>&nbsp;&nbsp;&nbsp;&nbsp;The dashed lines on the map indicate that this is a new sequence that you're starting!
+        <br><br>&nbsp;&nbsp;&nbsp;&nbsp; Similarly to how each riddle is independent within a sequence, each sequence in independent in the search, there's no connection between them. They have different ideas, different media, and different types of code inputs.
+
+        <br><br>&nbsp;&nbsp;&nbsp;&nbsp; When you're faced with a new riddle, especially one like this with various pieces, the first thing you should usually try to do is experiment with everything. Much like how if you go to a Riddle Room in real life, you want to explore the space and see what things you can find in it, you should look around for what things can be dragged, pressed, rotated, typed into, et cetera. Some riddles will be pretty obvious how to interact with them, but others will have subtler methods.
+
+        <br><br>&nbsp;&nbsp;&nbsp;&nbsp; By the way, I don't have much else to say about the riddles in this sequence, so you'll be on your own from here, good luck!
+    `
+
+    rad = 15;
+    pieces = [{x: 123, y:456}, {x: 300, y:300}, {x: 567, y:500}, {x: 345, y:100}, {x: 12, y:345}, {x: 500, y:200}, {x: 123, y:123},]
+    keypad = {x: 800, y:200, img:new Image()}
+
+    pieces.forEach(piece => {piece.img = new Image()})
+    selected = null;
+    offset = [0,0]
+    distance = (a, b, c, d) => {return Math.sqrt((a-c)*(a-c) + (b-d)*(b-d))};
+
+    const image = new Image()
+
+     s = "??????"
+
+     const complete = new Image();
+     complete.src = "complete.png"
+
+    pieces[0].img.src = "jig6.png";
+    pieces[1].img.src = "jig2.png";
+    pieces[2].img.src = "jig3.png";
+    pieces[3].img.src = "jig4.png";
+    pieces[4].img.src = "jig5.png";
+    pieces[5].img.src = "jig1.png";
+
+
+    keypad.img.src = "padx.png";
+    keypad.img.addEventListener("load", (e) => {
+        keypad.img.width/=4;
+        keypad.img.height/=4;
+      draw();
+    });
+
+    pieces.forEach(piece => {
+    piece.img.addEventListener("load", (e) => {
+        piece.img.width/=2.2;
+        piece.img.height/=2.2;
+      draw();
+    });
+    })
+
+    drawmore = true;
+    camzoom = Math.min(canvas.height/800, canvas.width / 1200);
+    draw = () => {
+        camzoom = Math.min(canvas.height/800, canvas.width / 1200);
+
+        if(!drawmore) return;
+        ctx.fillStyle = "#444444";
+        ctx.fillRect(0 * camzoom, 0 * camzoom, canvas.width, canvas.height);
+        ctx.fillStyle = "#666666";
+        ctx.fillRect(780 * camzoom, 0 * camzoom, canvas.width, canvas.height);
+        ctx.drawImage(keypad.img, keypad.x * camzoom, keypad.y * camzoom, keypad.img.width * camzoom, keypad.img.height * camzoom);
+        ctx.fillStyle = "#ffffff";
+        if(codestate == "wrong") ctx.fillStyle = "#ff8888";
+        if(codestate == "right") ctx.fillStyle = "#88ff88";
+        ctx.font = "bold " + 100*camzoom + "px monospace";
+        ctx.fillText(s, camzoom * (keypad.x+25), camzoom * (keypad.y-15));
+        pieces.reverse();
+        pieces.forEach(piece => {
+           
+          
+            ctx.drawImage(piece.img, piece.x * camzoom, piece.y * camzoom, piece.img.width * camzoom, piece.img.height * camzoom);
+           
+        });
+
+
+        pieces.reverse();
+
+
+    }
+
+
+    function getPixel(img, x, y) {
+        return [1,1,1,x > 0 && y > 0 && x < img.width && y < img.height];
+        let canvas = document.createElement('canvas');
+        canvas.width = 1;
+        canvas.height = 1;
+        canvas.getContext('2d').drawImage(img, x, y, 1, 1, 0, 0, 1, 1);;
+        let pixelData = canvas.getContext('2d').getImageData(0, 0, 1, 1).data;
+        return pixelData;   
+    }
+
+    codestate = "question"
+
+    function win(){
+        ctx.drawImage(complete, 0, 0);
+        drawmore = false;
+        solve("keypad1")
+    }
+
+
+    canvas.onmousedown = e=>{
+
+     clickx = e.offsetX / camzoom;
+     clicky = e.offsetY / camzoom;
+      for(var i = 0; i<pieces.length; i++){
+        piece = pieces[i];
+        if(selected == piece) {
+            selected = null;
+            draw();
+            return;
+        }
+     
+      }
+
+      for(var i = 0; i<pieces.length; i++){
+            piece = pieces[i];
+
+         if(getPixel(piece.img, clickx - piece.x,clicky - piece.y)[3] != 0){
+          
+           selected = piece;
+           offset = [clickx - piece.x, clicky - piece.y]
+           pieces = pieces.filter(p => p !== piece);
+            pieces.unshift(piece);
+
+           draw();
+            return;
+        }
+      }
+      
+       if(getPixel(keypad.img, clickx - keypad.x,clicky - keypad.y)[3] != 0){
+           if(codestate != "question") return;
+         
+           asd = [(clickx - keypad.x)/keypad.img.width, (clicky - keypad.y)/keypad.img.height]
+           var n=1;
+           if(asd[0] > 0.33) n++;
+           if(asd[0] > 0.66) n++;
+            if(asd[1] > 0.25) n+=3;
+           if(asd[1] > 0.5) n+=3;
+           if(asd[1] > 0.75) n-=8;
+           if(asd[1] < 0.75 || n == 0){
+            s = s[1] + s[2] + s[3] + s[4]  + s[5] + n
+            if(s[0] != '?'){
+                if(s != "573941"){
+                    codestate = "wrong"
+                }else{
+                    codestate = "right"
+                }
+                setTimeout(()=>{if(codestate=="wrong"){s="??????"; codestate="question"; draw()}else win()}, 800)
+            }
+           }
+           draw();
+            return;
+        }
+
+
+    }
+
+    canvas.onmouseup = e=>{
+         selected = null;
+    }
+
+
+
+    canvas.onmousemove = e => {
+         clickx = e.offsetX / camzoom;
+     clicky = e.offsetY / camzoom;
+        if(!selected) return;
+
+        selected.x = Math.min(Math.max(0, clickx - offset[0]),  (780-selected.img.width))
+        selected.y = Math.min(Math.max(0,clicky - offset[1]), (900-selected.img.height));
+
+        draw();
+    }
+
+
+}
+
+function keypad2(){
+    div.innerHTML = `
+    
+        
+    `
+
+    rad = 15;
+    pieces = [{x: 600, y:700}, {x: 500, y:300}, {x: 300, y:500}, {x: 200, y:200}, {x: 100, y:600}, {x: 400, y:100}]
+    keypad = {x: 800, y:200, img:new Image()}
+
+    pieces.forEach(piece => {piece.img = new Image()})
+    selected = null;
+    offset = [0,0]
+    distance = (a, b, c, d) => {return Math.sqrt((a-c)*(a-c) + (b-d)*(b-d))};
+
+    const image = new Image()
+
+     s = "??????"
+
+     const complete = new Image();
+     complete.src = "complete.png"
+
+    pieces[0].img.src = "jig21.png";
+    pieces[1].img.src = "jig22.png";
+    pieces[2].img.src = "jig23.png";
+    pieces[3].img.src = "jig24.png";
+    pieces[4].img.src = "jig25.png";
+    pieces[5].img.src = "jig26.png";
+
+
+    keypad.img.src = "padx.png";
+    keypad.img.addEventListener("load", (e) => {
+        keypad.img.width/=4;
+        keypad.img.height/=4;
+      draw();
+    });
+
+    pieces.forEach(piece => {
+    piece.img.addEventListener("load", (e) => {
+        piece.img.width/=1.5;
+        piece.img.height/=1.5;
+      draw();
+    });
+    })
+
+    drawmore = true;
+    camzoom = Math.min(canvas.height/800, canvas.width / 1200);
+    draw = () => {
+        camzoom = Math.min(canvas.height/800, canvas.width / 1200);
+
+        if(!drawmore) return;
+        ctx.fillStyle = "#444444";
+        ctx.fillRect(0 * camzoom, 0 * camzoom, canvas.width, canvas.height);
+        ctx.fillStyle = "#666666";
+        ctx.fillRect(780 * camzoom, 0 * camzoom, canvas.width, canvas.height);
+        ctx.drawImage(keypad.img, keypad.x * camzoom, keypad.y * camzoom, keypad.img.width * camzoom, keypad.img.height * camzoom);
+        ctx.fillStyle = "#ffffff";
+        if(codestate == "wrong") ctx.fillStyle = "#ff8888";
+        if(codestate == "right") ctx.fillStyle = "#88ff88";
+        ctx.font = "bold " + 100*camzoom + "px monospace";
+        ctx.fillText(s, camzoom * (keypad.x+25), camzoom * (keypad.y-15));
+        pieces.reverse();
+        pieces.forEach(piece => {
+           
+          
+            ctx.drawImage(piece.img, piece.x * camzoom, piece.y * camzoom, piece.img.width * camzoom, piece.img.height * camzoom);
+           
+        });
+
+
+        pieces.reverse();
+
+
+    }
+
+
+    function getPixel(img, x, y) {
+        return [1,1,1,x > 0 && y > 0 && x < img.width && y < img.height];
+        let canvas = document.createElement('canvas');
+        canvas.width = 1;
+        canvas.height = 1;
+        canvas.getContext('2d').drawImage(img, x, y, 1, 1, 0, 0, 1, 1);;
+        let pixelData = canvas.getContext('2d').getImageData(0, 0, 1, 1).data;
+        return pixelData;   
+    }
+
+    codestate = "question"
+
+    function win(){
+        ctx.drawImage(complete, 0, 0);
+        drawmore = false;
+        solve("keypad2")
+    }
+
+
+    canvas.onmousedown = e=>{
+
+     clickx = e.offsetX / camzoom;
+     clicky = e.offsetY / camzoom;
+      for(var i = 0; i<pieces.length; i++){
+        piece = pieces[i];
+        if(selected == piece) {
+            selected = null;
+            draw();
+            return;
+        }
+     
+      }
+
+      for(var i = 0; i<pieces.length; i++){
+            piece = pieces[i];
+
+         if(getPixel(piece.img, clickx - piece.x,clicky - piece.y)[3] != 0){
+          
+           selected = piece;
+           offset = [clickx - piece.x, clicky - piece.y]
+           pieces = pieces.filter(p => p !== piece);
+            pieces.unshift(piece);
+
+           draw();
+            return;
+        }
+      }
+      
+       if(getPixel(keypad.img, clickx - keypad.x,clicky - keypad.y)[3] != 0){
+           if(codestate != "question") return;
+         
+           asd = [(clickx - keypad.x)/keypad.img.width, (clicky - keypad.y)/keypad.img.height]
+           var n=1;
+           if(asd[0] > 0.33) n++;
+           if(asd[0] > 0.66) n++;
+            if(asd[1] > 0.25) n+=3;
+           if(asd[1] > 0.5) n+=3;
+           if(asd[1] > 0.75) n-=8;
+           if(asd[1] < 0.75 || n == 0){
+            s = s[1] + s[2] + s[3] + s[4]  + s[5] + n
+            if(s[0] != '?'){
+                if(s != "634781"){
+                    codestate = "wrong"
+                }else{
+                    codestate = "right"
+                }
+                setTimeout(()=>{if(codestate=="wrong"){s="??????"; codestate="question"; draw()}else win()}, 800)
+            }
+           }
+           draw();
+            return;
+        }
+
+
+    }
+
+    canvas.onmouseup = e=>{
+         selected = null;
+    }
+
+
+
+    canvas.onmousemove = e => {
+         clickx = e.offsetX / camzoom;
+     clicky = e.offsetY / camzoom;
+        if(!selected) return;
+
+        selected.x = Math.min(Math.max(0, clickx - offset[0]),  (780-selected.img.width))
+        selected.y = Math.min(Math.max(0,clicky - offset[1]), (900-selected.img.height));
+
+        draw();
+    }
+
+
+}
+
+
+function keypad3(){
+    div.innerHTML = `
+    
+        
+    `
+
+    rad = 15;
+    pieces = [{x: 81, y:442}, {x: 449, y:391}, {x: 308, y:270}, {x: 546, y:106}, {x: 265, y:616}, {x: 46, y:115}, {x: 572, y:560}]
+    keypad = {x: 800, y:200, img:new Image()}
+
+    pieces.forEach(piece => {piece.img = new Image()})
+    selected = null;
+    offset = [0,0]
+    distance = (a, b, c, d) => {return Math.sqrt((a-c)*(a-c) + (b-d)*(b-d))};
+
+    const image = new Image()
+
+     s = "?????"
+
+     const complete = new Image();
+     complete.src = "complete.png"
+
+    pieces[0].img.src = "jig52.png";
+    pieces[1].img.src = "jig51.png";
+    pieces[2].img.src = "jig53.png";
+    pieces[3].img.src = "jig54.png";
+    pieces[4].img.src = "jig55.png";
+    pieces[5].img.src = "jig56.png";
+    pieces[6].img.src = "jig57.png";
+
+
+    keypad.img.src = "padx.png";
+    keypad.img.addEventListener("load", (e) => {
+        keypad.img.width/=4;
+        keypad.img.height/=4;
+      draw();
+    });
+
+    pieces.forEach(piece => {
+    piece.img.addEventListener("load", (e) => {
+        piece.img.width/=2;
+        piece.img.height/=2;
+      draw();
+    });
+    })
+
+    drawmore = true;
+    camzoom = Math.min(canvas.height/800, canvas.width / 1200);
+    draw = () => {
+        camzoom = Math.min(canvas.height/800, canvas.width / 1200);
+
+        if(!drawmore) return;
+        ctx.fillStyle = "#444444";
+        ctx.fillRect(0 * camzoom, 0 * camzoom, canvas.width, canvas.height);
+        ctx.fillStyle = "#666666";
+        ctx.fillRect(780 * camzoom, 0 * camzoom, canvas.width, canvas.height);
+        ctx.drawImage(keypad.img, keypad.x * camzoom, keypad.y * camzoom, keypad.img.width * camzoom, keypad.img.height * camzoom);
+        ctx.fillStyle = "#ffffff";
+        if(codestate == "wrong") ctx.fillStyle = "#ff8888";
+        if(codestate == "right") ctx.fillStyle = "#88ff88";
+        ctx.font = "bold " + 100*camzoom + "px monospace";
+        ctx.fillText(s, camzoom * (keypad.x+50), camzoom * (keypad.y-15));
+        pieces.reverse();
+        pieces.forEach(piece => {
+           
+          
+            ctx.drawImage(piece.img, piece.x * camzoom, piece.y * camzoom, piece.img.width * camzoom, piece.img.height * camzoom);
+           
+        });
+
+
+        pieces.reverse();
+
+
+    }
+
+
+    function getPixel(img, x, y) {
+        return [1,1,1,x > 0 && y > 0 && x < img.width && y < img.height];
+        let canvas = document.createElement('canvas');
+        canvas.width = 1;
+        canvas.height = 1;
+        canvas.getContext('2d').drawImage(img, x, y, 1, 1, 0, 0, 1, 1);;
+        let pixelData = canvas.getContext('2d').getImageData(0, 0, 1, 1).data;
+        return pixelData;   
+    }
+
+    codestate = "question"
+
+    function win(){
+        ctx.drawImage(complete, 0, 0);
+        drawmore = false;
+        solve("keypad3")
+    }
+
+
+    canvas.onmousedown = e=>{
+
+     clickx = e.offsetX / camzoom;
+     clicky = e.offsetY / camzoom;
+      for(var i = 0; i<pieces.length; i++){
+        piece = pieces[i];
+        if(selected == piece) {
+            selected = null;
+            draw();
+            return;
+        }
+     
+      }
+
+      for(var i = 0; i<pieces.length; i++){
+            piece = pieces[i];
+
+         if(getPixel(piece.img, clickx - piece.x,clicky - piece.y)[3] != 0){
+          
+           selected = piece;
+           offset = [clickx - piece.x, clicky - piece.y]
+           pieces = pieces.filter(p => p !== piece);
+            pieces.unshift(piece);
+
+           draw();
+            return;
+        }
+      }
+      
+       if(getPixel(keypad.img, clickx - keypad.x,clicky - keypad.y)[3] != 0){
+           if(codestate != "question") return;
+         
+           asd = [(clickx - keypad.x)/keypad.img.width, (clicky - keypad.y)/keypad.img.height]
+           var n=1;
+           if(asd[0] > 0.33) n++;
+           if(asd[0] > 0.66) n++;
+            if(asd[1] > 0.25) n+=3;
+           if(asd[1] > 0.5) n+=3;
+           if(asd[1] > 0.75) n-=8;
+           if(asd[1] < 0.75 || n == 0){
+            s = s[1] + s[2] + s[3] + s[4] + n
+            if(s[0] != '?'){
+                if(s != "06134"){
+                    codestate = "wrong"
+                }else{
+                    codestate = "right"
+                }
+                setTimeout(()=>{if(codestate=="wrong"){s="?????"; codestate="question"; draw()}else win()}, 800)
+            }
+           }
+           draw();
+            return;
+        }
+
+
+    }
+
+    canvas.onmouseup = e=>{
+         selected = null;
+    }
+
+
+
+    canvas.onmousemove = e => {
+         clickx = e.offsetX / camzoom;
+     clicky = e.offsetY / camzoom;
+        if(!selected) return;
+
+        selected.x = Math.min(Math.max(0, clickx - offset[0]),  (780-selected.img.width))
+        selected.y = Math.min(Math.max(0,clicky - offset[1]), (900-selected.img.height));
+
+        draw();
+    }
+
+
+}
+
+function keypad4(){
+    div.innerHTML = `
+    
+        
+    `
+
+    rad = 15;
+    pieces = [{x: 81, y:442}, {x: 449, y:391}, {x: 308, y:270}, {x: 546, y:106}, {x: 265, y:616}, {x: 46, y:115}]
+    keypad = {x: 800, y:200, img:new Image()}
+
+    pieces.forEach(piece => {piece.img = new Image()})
+    selected = null;
+    offset = [0,0]
+    distance = (a, b, c, d) => {return Math.sqrt((a-c)*(a-c) + (b-d)*(b-d))};
+
+    const image = new Image()
+
+     s = "?????"
+
+     const complete = new Image();
+     complete.src = "complete.png"
+
+    pieces[0].img.src = "jig62.png";
+pieces[1].img.src = "jig61.png";
+pieces[2].img.src = "jig63.png";
+pieces[3].img.src = "jig64.png";
+pieces[4].img.src = "jig65.png";
+pieces[5].img.src = "jig66.png";
+
+
+    keypad.img.src = "padx.png";
+    keypad.img.addEventListener("load", (e) => {
+        keypad.img.width/=4;
+        keypad.img.height/=4;
+      draw();
+    });
+
+    pieces.forEach(piece => {
+    piece.img.addEventListener("load", (e) => {
+        piece.img.width/=2.2;
+        piece.img.height/=2.2;
+      draw();
+    });
+    })
+
+    drawmore = true;
+    camzoom = Math.min(canvas.height/800, canvas.width / 1200);
+    draw = () => {
+        camzoom = Math.min(canvas.height/800, canvas.width / 1200);
+
+        if(!drawmore) return;
+        ctx.fillStyle = "#444444";
+        ctx.fillRect(0 * camzoom, 0 * camzoom, canvas.width, canvas.height);
+        ctx.fillStyle = "#666666";
+        ctx.fillRect(780 * camzoom, 0 * camzoom, canvas.width, canvas.height);
+        ctx.drawImage(keypad.img, keypad.x * camzoom, keypad.y * camzoom, keypad.img.width * camzoom, keypad.img.height * camzoom);
+        ctx.fillStyle = "#ffffff";
+        if(codestate == "wrong") ctx.fillStyle = "#ff8888";
+        if(codestate == "right") ctx.fillStyle = "#88ff88";
+        ctx.font = "bold " + 100*camzoom + "px monospace";
+        ctx.fillText(s, camzoom * (keypad.x+50), camzoom * (keypad.y-15));
+        pieces.reverse();
+        pieces.forEach(piece => {
+           
+          
+            ctx.drawImage(piece.img, piece.x * camzoom, piece.y * camzoom, piece.img.width * camzoom, piece.img.height * camzoom);
+           
+        });
+
+
+        pieces.reverse();
+
+
+    }
+
+
+    function getPixel(img, x, y) {
+        return [1,1,1,x > 0 && y > 0 && x < img.width && y < img.height];
+        let canvas = document.createElement('canvas');
+        canvas.width = 1;
+        canvas.height = 1;
+        canvas.getContext('2d').drawImage(img, x, y, 1, 1, 0, 0, 1, 1);;
+        let pixelData = canvas.getContext('2d').getImageData(0, 0, 1, 1).data;
+        return pixelData;   
+    }
+
+    codestate = "question"
+
+    function win(){
+        ctx.drawImage(complete, 0, 0);
+        drawmore = false;
+        solve("keypad4")
+    }
+
+
+    canvas.onmousedown = e=>{
+
+     clickx = e.offsetX / camzoom;
+     clicky = e.offsetY / camzoom;
+      for(var i = 0; i<pieces.length; i++){
+        piece = pieces[i];
+        if(selected == piece) {
+            selected = null;
+            draw();
+            return;
+        }
+     
+      }
+
+      for(var i = 0; i<pieces.length; i++){
+            piece = pieces[i];
+
+         if(getPixel(piece.img, clickx - piece.x,clicky - piece.y)[3] != 0){
+          
+           selected = piece;
+           offset = [clickx - piece.x, clicky - piece.y]
+           pieces = pieces.filter(p => p !== piece);
+            pieces.unshift(piece);
+
+           draw();
+            return;
+        }
+      }
+      
+       if(getPixel(keypad.img, clickx - keypad.x,clicky - keypad.y)[3] != 0){
+           if(codestate != "question") return;
+         
+           asd = [(clickx - keypad.x)/keypad.img.width, (clicky - keypad.y)/keypad.img.height]
+           var n=1;
+           if(asd[0] > 0.33) n++;
+           if(asd[0] > 0.66) n++;
+            if(asd[1] > 0.25) n+=3;
+           if(asd[1] > 0.5) n+=3;
+           if(asd[1] > 0.75) n-=8;
+           if(asd[1] < 0.75 || n == 0){
+            s = s[1] + s[2] + s[3] + s[4] + n
+            if(s[0] != '?'){
+                if(s != "27315"){
+                    codestate = "wrong"
+                }else{
+                    codestate = "right"
+                }
+                setTimeout(()=>{if(codestate=="wrong"){s="?????"; codestate="question"; draw()}else win()}, 800)
+            }
+           }
+           draw();
+            return;
+        }
+
+
+    }
+
+    canvas.onmouseup = e=>{
+         selected = null;
+    }
+
+
+
+    canvas.onmousemove = e => {
+         clickx = e.offsetX / camzoom;
+     clicky = e.offsetY / camzoom;
+        if(!selected) return;
+
+        selected.x = Math.min(Math.max(0, clickx - offset[0]),  (780-selected.img.width))
+        selected.y = Math.min(Math.max(0,clicky - offset[1]), (900-selected.img.height));
+
+        draw();
+    }
+
+
+}
+
+function keypad5(){
+    div.innerHTML = `
+    
+        
+    `
+
+    rad = 15;
+    pieces = [{x: 850, y:228}, {x: 960, y:225}, {x: 1083, y:231}, {x: 837, y:341}, {x: 953, y:342}, {x: 1093, y:348}, {x: 837, y:465}, {x: 965, y:465}, {x: 1088, y:473}, {x: 968, y:594}]
+    keypad = {x: 800, y:200, img:new Image()}
+
+    pieces.forEach(piece => {piece.img = new Image()})
+    selected = null;
+    offset = [0,0]
+    distance = (a, b, c, d) => {return Math.sqrt((a-c)*(a-c) + (b-d)*(b-d))};
+
+    const image = new Image()
+
+     s = "?????"
+
+     const complete = new Image();
+     complete.src = "complete.png"
+
+    pieces[0].img.src = "jig31.png";
+pieces[1].img.src = "jig32.png";
+pieces[2].img.src = "jig33.png";
+pieces[3].img.src = "jig34.png";
+pieces[4].img.src = "jig35.png";
+pieces[5].img.src = "jig36.png";
+pieces[6].img.src = "jig37.png";
+pieces[7].img.src = "jig38.png";
+pieces[8].img.src = "jig39.png";
+pieces[9].img.src = "jig30.png";
+
+
+    keypad.img.src = "pady.png";
+    keypad.img.addEventListener("load", (e) => {
+        keypad.img.width/=4;
+        keypad.img.height/=4;
+      draw();
+    });
+
+    pieces.forEach(piece => {
+    piece.img.addEventListener("load", (e) => {
+        piece.img.width/=1;
+        piece.img.height/=1;
+      draw();
+    });
+    })
+
+    drawmore = true;
+    camzoom = Math.min(canvas.height/800, canvas.width / 1200);
+    draw = () => {
+        camzoom = Math.min(canvas.height/800, canvas.width / 1200);
+
+        if(!drawmore) return;
+        ctx.fillStyle = "#444444";
+        ctx.fillRect(0 * camzoom, 0 * camzoom, canvas.width, canvas.height);
+        ctx.fillStyle = "#666666";
+        ctx.fillRect(780 * camzoom, 0 * camzoom, canvas.width, canvas.height);
+        ctx.drawImage(keypad.img, keypad.x * camzoom, keypad.y * camzoom, keypad.img.width * camzoom, keypad.img.height * camzoom);
+        ctx.fillStyle = "#ffffff";
+        if(codestate == "wrong") ctx.fillStyle = "#ff8888";
+        if(codestate == "right") ctx.fillStyle = "#88ff88";
+        ctx.font = "bold " + 100*camzoom + "px monospace";
+        ctx.fillText(s, camzoom * (keypad.x+50), camzoom * (keypad.y-15));
+        pieces.reverse();
+        pieces.forEach(piece => {
+           
+          
+            ctx.drawImage(piece.img, piece.x * camzoom, piece.y * camzoom, piece.img.width * camzoom, piece.img.height * camzoom);
+           
+        });
+
+
+        pieces.reverse();
+
+
+    }
+
+
+    function getPixel(img, x, y) {
+        return [1,1,1,x > 0 && y > 0 && x < img.width && y < img.height];
+        let canvas = document.createElement('canvas');
+        canvas.width = 1;
+        canvas.height = 1;
+        canvas.getContext('2d').drawImage(img, x, y, 1, 1, 0, 0, 1, 1);;
+        let pixelData = canvas.getContext('2d').getImageData(0, 0, 1, 1).data;
+        return pixelData;   
+    }
+
+    codestate = "question"
+
+    function win(){
+        ctx.drawImage(complete, 0, 0);
+        drawmore = false;
+        solve("keypad5")
+    }
+
+
+    canvas.onmousedown = e=>{
+
+     clickx = e.offsetX / camzoom;
+     clicky = e.offsetY / camzoom;
+      for(var i = 0; i<pieces.length; i++){
+        piece = pieces[i];
+        if(selected == piece) {
+            selected = null;
+            draw();
+            return;
+        }
+     
+      }
+
+      for(var i = 0; i<pieces.length; i++){
+            piece = pieces[i];
+
+         if(getPixel(piece.img, clickx - piece.x,clicky - piece.y)[3] != 0){
+          
+           selected = piece;
+           offset = [clickx - piece.x, clicky - piece.y]
+           pieces = pieces.filter(p => p !== piece);
+            pieces.unshift(piece);
+
+           draw();
+            return;
+        }
+      }
+      
+       if(getPixel(keypad.img, clickx - keypad.x,clicky - keypad.y)[3] != 0){
+           if(codestate != "question") return;
+         
+           asd = [(clickx - keypad.x)/keypad.img.width, (clicky - keypad.y)/keypad.img.height]
+           var n=1;
+           if(asd[0] > 0.33) n++;
+           if(asd[0] > 0.66) n++;
+            if(asd[1] > 0.25) n+=3;
+           if(asd[1] > 0.5) n+=3;
+           if(asd[1] > 0.75) n-=8;
+           if(asd[1] < 0.75 || n == 0){
+            s = s[1] + s[2] + s[3] + s[4] + n
+            if(s[0] != '?'){
+                if(s != "65247"){
+                    codestate = "wrong"
+                }else{
+                    codestate = "right"
+                }
+                setTimeout(()=>{if(codestate=="wrong"){s="?????"; codestate="question"; draw()}else win()}, 800)
+            }
+           }
+           draw();
+            return;
+        }
+
+
+    }
+
+    canvas.onmouseup = e=>{
+         selected = null;
+    }
+
+
+
+    canvas.onmousemove = e => {
+         clickx = e.offsetX / camzoom;
+     clicky = e.offsetY / camzoom;
+        if(!selected) return;
+
+        selected.x = Math.min(Math.max(0, clickx - offset[0]),  (1200-selected.img.width))
+        selected.y = Math.min(Math.max(0,clicky - offset[1]), (900-selected.img.height));
+
+        draw();
+    }
+
+
+}
+
+function keypad6(){
+    div.innerHTML = `
+    
+        
+    `
+
+    rad = 15;
+pieces = [
+    {x: 835, y:214}, 
+    {x: 960, y:214}, 
+    {x: 1082, y:214}, 
+    {x: 835, y:335}, 
+    {x: 960, y:335}, 
+    {x: 1082, y:335}, 
+    {x: 835, y:456}, 
+    {x: 960, y:456}, 
+    {x: 1082, y:456}, 
+    {x: 957, y:600}]
+    keypad = {x: 800, y:200, img:new Image()}
+
+    pieces.forEach(piece => {piece.img = new Image()})
+    selected = null;
+    offset = [0,0]
+    distance = (a, b, c, d) => {return Math.sqrt((a-c)*(a-c) + (b-d)*(b-d))};
+
+    const image = new Image()
+
+     s = "??????"
+
+     const complete = new Image();
+     complete.src = "complete.png"
+
+pieces[0].img.src = "jig41.png";
+pieces[1].img.src = "jig42.png";
+pieces[2].img.src = "jig43.png";
+pieces[3].img.src = "jig44.png";
+pieces[4].img.src = "jig45.png";
+pieces[5].img.src = "jig46.png";
+pieces[6].img.src = "jig47.png";
+pieces[7].img.src = "jig48.png";
+pieces[8].img.src = "jig49.png";
+pieces[9].img.src = "jig40.png";
+
+
+    keypad.img.src = "pady.png";
+    keypad.img.addEventListener("load", (e) => {
+        keypad.img.width/=4;
+        keypad.img.height/=4;
+      draw();
+    });
+
+    pieces.forEach(piece => {
+    piece.img.addEventListener("load", (e) => {
+        piece.img.width/=2.5;
+        piece.img.height/=2.5;
+      draw();
+    });
+    })
+
+    drawmore = true;
+    camzoom = Math.min(canvas.height/800, canvas.width / 1200);
+    draw = () => {
+        camzoom = Math.min(canvas.height/800, canvas.width / 1200);
+
+        if(!drawmore) return;
+        ctx.fillStyle = "#444444";
+        ctx.fillRect(0 * camzoom, 0 * camzoom, canvas.width, canvas.height);
+        ctx.fillStyle = "#666666";
+        ctx.fillRect(780 * camzoom, 0 * camzoom, canvas.width, canvas.height);
+        ctx.drawImage(keypad.img, keypad.x * camzoom, keypad.y * camzoom, keypad.img.width * camzoom, keypad.img.height * camzoom);
+        ctx.fillStyle = "#ffffff";
+        if(codestate == "wrong") ctx.fillStyle = "#ff8888";
+        if(codestate == "right") ctx.fillStyle = "#88ff88";
+        ctx.font = "bold " + 100*camzoom + "px monospace";
+        ctx.fillText(s, camzoom * (keypad.x+25), camzoom * (keypad.y-15));
+        pieces.reverse();
+        pieces.forEach(piece => {
+           
+          
+            ctx.drawImage(piece.img, piece.x * camzoom, piece.y * camzoom, piece.img.width * camzoom, piece.img.height * camzoom);
+           
+        });
+
+
+        pieces.reverse();
+
+
+    }
+
+
+    function getPixel(img, x, y) {
+        return [1,1,1,x > 0 && y > 0 && x < img.width && y < img.height];
+        let canvas = document.createElement('canvas');
+        canvas.width = 1;
+        canvas.height = 1;
+        canvas.getContext('2d').drawImage(img, x, y, 1, 1, 0, 0, 1, 1);;
+        let pixelData = canvas.getContext('2d').getImageData(0, 0, 1, 1).data;
+        return pixelData;   
+    }
+
+    codestate = "question"
+
+    function win(){
+        ctx.drawImage(complete, 0, 0);
+        drawmore = false;
+        solve("keypad5")
+    }
+
+
+    canvas.onmousedown = e=>{
+
+     clickx = e.offsetX / camzoom;
+     clicky = e.offsetY / camzoom;
+      for(var i = 0; i<pieces.length; i++){
+        piece = pieces[i];
+        if(selected == piece) {
+            selected = null;
+            draw();
+            return;
+        }
+     
+      }
+
+      for(var i = 0; i<pieces.length; i++){
+            piece = pieces[i];
+
+         if(getPixel(piece.img, clickx - piece.x,clicky - piece.y)[3] != 0){
+          
+           selected = piece;
+           offset = [clickx - piece.x, clicky - piece.y]
+           pieces = pieces.filter(p => p !== piece);
+            pieces.unshift(piece);
+
+           draw();
+            return;
+        }
+      }
+       if(getPixel(keypad.img, clickx - keypad.x,clicky - keypad.y)[3] != 0){
+           if(codestate != "question") return;
+         
+           asd = [(clickx - keypad.x)/keypad.img.width, (clicky - keypad.y)/keypad.img.height]
+           var n=1;
+           if(asd[0] > 0.33) n++;
+           if(asd[0] > 0.66) n++;
+            if(asd[1] > 0.25) n+=3;
+           if(asd[1] > 0.5) n+=3;
+           if(asd[1] > 0.75) n-=8;
+           if(asd[1] < 0.75 || n == 0){
+            s = s[1] + s[2] + s[3] + s[4] + s[5] +  n
+            if(s[0] != '?'){
+                if(s != "607435"){
+                    codestate = "wrong"
+                }else{
+                    codestate = "right"
+                }
+                setTimeout(()=>{if(codestate=="wrong"){s="??????"; codestate="question"; draw()}else win()}, 800)
+            }
+           }
+           draw();
+            return;
+        }
+
+
+    }
+
+    canvas.onmouseup = e=>{
+         selected = null;
+    }
+
+
+
+    canvas.onmousemove = e => {
+         clickx = e.offsetX / camzoom;
+     clicky = e.offsetY / camzoom;
+        if(!selected) return;
+
+        selected.x = Math.min(Math.max(0, clickx - offset[0]),  (1200-selected.img.width))
+        selected.y = Math.min(Math.max(0,clicky - offset[1]), (900-selected.img.height));
+
+        draw();
+    }
+
+
+}
+
+function qr1 () {
+
+}
+function qr2 () {
+
+}
+function qr3 () {
+
+}
+function qr4 () {
+
+}
+function qr5 () {
+
+}
+function qr6 () {
+
+}
+function qr7 () {
+
+}
+function qr8 () {
+
+}
+function qr9 () {
+
+}
+
+function group1 () {
+div.innerHTML = `
+    <br><br>&nbsp;&nbsp;&nbsp;&nbsp; It's important to remember that every riddle must have some method of interaction. There might just be a code to enter, or some buttons to press, or pieces you need to arrange correctly, there always must be something because otherwise there'd be no way for it to know whether you completed the riddle or not! 
+    <br><br>&nbsp;&nbsp;&nbsp;&nbsp; Because this is the first riddle of the sequence, and the first sequence with riddles that don't simply have codes, I'll help out with the objective, but for the rest of the sequence, you'll have to figure out the objective yourself using deduction and intuition. In this riddle, the goal is to somehow sort the list of twelve itmes into two lists of six items, on either side of the vertical line.
+    `
+rad = 15;
+pieces = [
+{x: 123, y:100, word: "zipper"},
+{x: 123, y:150, word: "steering wheel", gp: 1},
+{x: 123, y:200, word: "soap dispenser"},
+{x: 123, y:250, word: "door knob", gp: 1},
+{x: 123, y:300, word: "doorbell"},
+{x: 123, y:350, word: "kaleidoscope", gp: 1},
+{x: 123, y:400, word: "toaster lever"},
+{x: 123, y:450, word: "toilet plunger"},
+{x: 123, y:500, word: "jar lid", gp: 1},
+{x: 123, y:550, word: "rotary phone dial", gp: 1},
+{x: 123, y:600, word: "screwdriver", gp: 1},
+{x: 123, y:650, word: "piano key"},
+
+
+]
+
+
+keypad = {x: 800, y:200, img:new Image()}
+
+pieces.forEach((piece, i) => {piece.height = 50, piece.width = 25 + 27 * piece.word.length, piece.y = 55 * i + 500})
+selected = null;
+offset = [0,0]
+distance = (a, b, c, d) => {return Math.sqrt((a-c)*(a-c) + (b-d)*(b-d))};
+
+const image = new Image()
+
+ s = "?????"
+
+ const complete = new Image();
+ complete.src = "complete.png"
+
+
+
+    rat = 1;
+
+
+drawmore = true;
+
+draw = () => {
+    camzoom = Math.min(canvas.height/800, canvas.width / 1200);
+    if(!drawmore) return;
+    ctx.fillStyle = "#bbeeee";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(camzoom *50, camzoom *50, camzoom * 1100, camzoom *5);
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(camzoom *598, camzoom *50, camzoom *5, camzoom *500);
+    pieces.reverse();
+    pieces.forEach(piece => {
+       
+      
+        /*ctx.strokeStyle = "#462c4b"
+        if(piece == selected){
+            ctx.strokeStyle = "#962c4b"
+        }
+        ctx.beginPath();
+        ctx.arc(piece.x, piece.y, rad + 1, 0, 2 * Math.PI);
+        ctx.lineWidth = 2;
+         
+        ctx.stroke();
+        ctx.fill();
+        */
+        ctx.fillStyle = "#eeeeee";
+        ctx.fillRect(camzoom *piece.x, camzoom *piece.y, camzoom *piece.width, camzoom *piece.height);
+        ctx.fillStyle = "#111111";
+    
+        ctx.font = "bold "+ camzoom * 50 +  "px monospace";
+        ctx.fillText(piece.word, camzoom *(piece.x + 10), camzoom *(piece.y+40))
+        ctx.strokeStyle = "#111111";
+        ctx.strokeRect(camzoom *piece.x, camzoom *piece.y, camzoom *piece.width, camzoom *piece.height);
+    });
+
+
+    pieces.reverse();
+
+    checkwin()
+}
+
+    resize();
+
+function getPixel(img, x, y) {
+    return [1,1,1,x > 0 && y > 0 && x < img.width && y < img.height];
+    let canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    canvas.getContext('2d').drawImage(img, x, y, 1, 1, 0, 0, 1, 1);;
+    let pixelData = canvas.getContext('2d').getImageData(0, 0, 1, 1).data;
+    console.log(pixelData)
+    return pixelData;   
+}
+
+codestate = "question"
+
+function win(){
+    ctx.drawImage(complete, 0, 0);
+    drawmore = false;
+    solve("group1")
+}
+
+function checkwin(){
+    won1 = true;
+    won2 = true;
+    for(var i=0; i<pieces.length; i++){
+        if(pieces[i].y > 700){
+            won1 = false;
+            won2 = false;
+        }
+        if(pieces[i].x + pieces[i].width/2 > 600 && pieces[i].gp){
+            won1 = false;
+        }
+        if(pieces[i].x + pieces[i].width/2 > 600 && !pieces[i].gp){
+            won2 = false;
+        }
+        if(pieces[i].x + pieces[i].width/2 < 600 && !pieces[i].gp){
+            won1 = false;
+        }
+        if(pieces[i].x + pieces[i].width/2 < 600 && pieces[i].gp){
+            won2 = false;
+        }
+    }
+    if(won1 || won2) win();
+}
+
+
+canvas.onmousedown = e=>{
+    clickx = e.offsetX / camzoom;
+    clicky = e.offsetY / camzoom;
+  for(var i = 0; i<pieces.length; i++){
+    piece = pieces[i];
+    if(selected == piece) {
+        selected = null;
+        draw();
+        return;
+    }
+ 
+  }
+
+  for(var i = 0; i<pieces.length; i++){
+        piece = pieces[i];
+
+     if(clickx - piece.x > 0 &&clickx - piece.x < piece.width && clicky - piece.y > 0 && clicky - piece.y < piece.height ){
+      
+       selected = piece;
+       offset = [clickx - piece.x, clicky - piece.y]
+       pieces = pieces.filter(p => p !== piece);
+        pieces.unshift(piece);
+
+       draw();
+        return;
+    }
+  }
+
+
+}
+
+canvas.onmouseup = e=>{
+     selected = null;
+}
+
+
+
+canvas.onmousemove = e => {
+    if(!selected) return;
+
+    selected.x = Math.min(Math.max(0, e.offsetX/camzoom - offset[0]), 1200-selected.width)
+    selected.y = Math.min(Math.max(0,e.offsetY/camzoom - offset[1]), 1200-selected.height);
+
+    draw();
+}
+
+
+}
+function group2 () {
+
+div.innerHTML = `
+    <br><br>&nbsp;&nbsp;&nbsp;&nbsp;You're not necessarily expected to know everything in every riddle. Unless specifically told you can't, you're allowed to look up whatever you need to in order to complete a riddle.
+    <br><br>
+    <input onchange = "check(this.value)"> </input>
+    <br>
+    `
+
+rad = 15;
+pieces = [
+
+{x: 123, y:550, word: "quasimodo", gp: [1,0,1,0]},          //good human green movie
+{x: 123, y:350, word: "darth maul", gp: [1,1,0,1]},         //evil nonhuman red movie
+{x: 123, y:100, word: "ryu", gp:[0,0,0,0]},                 //good human red game
+{x: 123, y:450, word: "yoshi", gp: [0,0,1,1]},              //good nonhuman green game
+{x: 123, y:250, word: "the flash", gp: [1,0,0,0]},          //good human red movie
+{x: 123, y:150, word: "carmen sandiego", gp: [0,1,0,0]},    //evil human red game
+{x: 123, y:500, word: "a creeper", gp: [0,1,1,1]},          //evil nonhuman green game
+{x: 123, y:300, word: "jafar", gp: [1,1,0,0]},              //evil human red movie
+{x: 123, y:650, word: "the grinch", gp: [1,1,1,1]},         //evil nonhuman green movie
+{x: 123, y:200, word: "diablo", gp: [0,1,0,1]},             //evil nonhuman red game
+{x: 123, y:600, word: "tinkerbell", gp: [1,0,1,1]},         //good nonhuman green movie
+{x: 123, y:400, word: "this riddle's code", gp: [0,0,1,0]}, //good human green game
+]
+
+
+keypad = {x: 800, y:200, img:new Image()}
+
+pieces.forEach((piece, i) => {piece.height = 50, piece.width = 25 + 27 * piece.word.length, piece.y = 55 * i + 500})
+selected = null;
+offset = [0,0]
+distance = (a, b, c, d) => {return Math.sqrt((a-c)*(a-c) + (b-d)*(b-d))};
+
+const image = new Image()
+
+ s = "?????"
+
+ const complete = new Image();
+ complete.src = "complete.png"
+
+
+
+
+
+
+drawmore = true;
+
+
+
+ draw = () => {
+    camzoom = Math.min(canvas.height/800, canvas.width / 1200);
+    if(!drawmore) return;
+    ctx.fillStyle = "#bbeeee";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    if(checkwin()){
+        ctx.fillStyle = "#00ff00";
+        ctx.fillRect(camzoom *50, camzoom *50, camzoom *1100, camzoom *15);
+        ctx.fillStyle = "#00ff00";
+        ctx.fillRect(camzoom *593, camzoom *50, camzoom *15, camzoom *500);
+    }else{
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(camzoom *50, camzoom *50, camzoom *1100, camzoom *5);
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(camzoom *598, camzoom *50, camzoom *5, camzoom *500);
+    }
+    for(var i=0; i<4; i++){
+        ctx.fillStyle = "#000000"
+        ctx.font = camzoom * 50 + "px monospace";
+        if(checkwin() == i+1){
+            ctx.fillStyle = "#00ff00"
+            ctx.font = "bold " + camzoom * 50 + "px monospace";
+        }
+        ctx.fillText(i+1, camzoom *(540 + 30*i), camzoom *40)
+    }
+  
+    pieces.reverse();
+    pieces.forEach(piece => {
+       
+      
+        /*ctx.strokeStyle = "#462c4b"
+        if(piece == selected){
+            ctx.strokeStyle = "#962c4b"
+        }
+        ctx.beginPath();
+        ctx.arc(piece.x, piece.y, rad + 1, 0, 2 * Math.PI);
+        ctx.lineWidth = 2;
+         
+        ctx.stroke();
+        ctx.fill();
+        */
+        ctx.fillStyle = "#eeeeee";
+        ctx.fillRect(camzoom *piece.x, camzoom *piece.y, camzoom *piece.width, camzoom *piece.height);
+        ctx.fillStyle = "#111111";
+    
+        ctx.font = "bold " + camzoom * 50 + "px monospace";
+        ctx.fillText(piece.word, camzoom *(piece.x + 10), camzoom *(piece.y+40))
+        ctx.strokeStyle = "#111111";
+        ctx.strokeRect(camzoom *piece.x, camzoom *piece.y, camzoom *piece.width, camzoom *piece.height);
+    });
+
+
+    pieces.reverse();
+
+    
+}
+rat = 1;
+resize();
+
+function getPixel(img, x, y) {
+    return [1,1,1,x > 0 && y > 0 && x < img.width && y < img.height];
+    let canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    canvas.getContext('2d').drawImage(img, x, y, 1, 1, 0, 0, 1, 1);;
+    let pixelData = canvas.getContext('2d').getImageData(0, 0, 1, 1).data;
+    console.log(pixelData)
+    return pixelData;   
+}
+
+codestate = "question"
+
+check = (val) => {
+        if(val.toLowerCase() == "luigi" || val.toLowerCase() == "jade"){
+            solve("intro5")
+
+        }
+        if(val.toLowerCase() == "link" || val.toLowerCase() == "hulk"){
+            div.innerHTML = `
+    <br><br>
+    <b> Good guess, but not quite.</b>
+    <input onchange = "check(this.value)"> </input>
+    <br>
+    `
+
+        }else{
+            div.innerHTML = `
+    <br><br>
+
+    <input onchange = "check(this.value)"> </input>
+    <br>
+    `
+        }
+    }
+
+function checkwin(){
+    for(var j=0; j<4; j++){
+        won1 = true;
+        won2 = true;
+        for(var i=0; i<pieces.length; i++){
+            if(pieces[i].y > 700){
+                won1 = false;
+                won2 = false;
+            }
+            if(pieces[i].x + pieces[i].width/2> 600 && pieces[i].gp[j]){
+                won1 = false;
+            }
+            if(pieces[i].x + pieces[i].width/2> 600 && !pieces[i].gp[j]){
+                won2 = false;
+            }
+            if(pieces[i].x + pieces[i].width/2 < 600 && !pieces[i].gp[j]){
+                won1 = false;
+            }
+            if(pieces[i].x + pieces[i].width/2 < 600 && pieces[i].gp[j]){
+                won2 = false;
+            }
+        }
+        if(won1 || won2) return j+1;
+    }
+    return false;
+}
+
+
+canvas.onmousedown = e=>{
+    clickx = e.offsetX / camzoom;
+    clicky = e.offsetY / camzoom;
+  for(var i = 0; i<pieces.length; i++){
+    piece = pieces[i];
+    if(selected == piece) {
+        selected = null;
+        draw();
+        return;
+    }
+ 
+  }
+
+  for(var i = 0; i<pieces.length; i++){
+        piece = pieces[i];
+
+     if(clickx - piece.x > 0 &&clickx - piece.x < piece.width && clicky - piece.y > 0 && clicky - piece.y < piece.height ){
+      
+       selected = piece;
+       offset = [clickx - piece.x, clicky - piece.y]
+       pieces = pieces.filter(p => p !== piece);
+        pieces.unshift(piece);
+
+       draw();
+        return;
+    }
+  }
+
+
+}
+
+canvas.onmouseup = e=>{
+     selected = null;
+}
+
+
+
+canvas.onmousemove = e => {
+    if(!selected) return;
+
+    selected.x = Math.min(Math.max(0, e.offsetX/camzoom - offset[0]), 1200-selected.width)
+    selected.y = Math.min(Math.max(0,e.offsetY/camzoom - offset[1]), 1200-selected.height);
+
+    draw();
+}
+
+
+
+}
+function group3 () {
+
+div.innerHTML = `
+    
+    `
+rad = 15;
+pieces = [
+
+{x: 123, y:400, word: "frisbee", gp: [1,1]},
+{x: 123, y:250, word: "nail", gp: [0, 1]},
+{x: 123, y:100, word: "flute", gp:[0,0]},
+{x: 123, y:500, word: "life preserver", gp: [1, 0]},
+{x: 123, y:300, word: "cd-rom", gp: [1, 0]},
+{x: 123, y:200, word: "pizza", gp: [1,1]},
+{x: 123, y:650, word: "ring", gp: [1, 0]},
+{x: 123, y:150, word: "chalk", gp: [0, 1]},
+{x: 123, y:600, word: "clock", gp: [1,1]},
+{x: 123, y:550, word: "straw", gp: [0, 0]},
+{x: 123, y:350, word: "pool noodle", gp: [0, 0]},
+{x: 123, y:450, word: "chopstick", gp: [0,1]},
+]
+
+
+keypad = {x: 800, y:200, img:new Image()}
+
+pieces.forEach((piece, i) => {piece.height = 50, piece.width = 25 + 27 * piece.word.length, piece.y = 55 * i + 500})
+selected = null;
+offset = [0,0]
+distance = (a, b, c, d) => {return Math.sqrt((a-c)*(a-c) + (b-d)*(b-d))};
+
+const image = new Image()
+
+ s = "?????"
+
+ const complete = new Image();
+ complete.src = "complete.png"
+
+
+
+    rat = 1;
+
+
+drawmore = true;
+
+draw = () => {
+    camzoom = Math.min(canvas.height/1200, canvas.width / 1200);
+    if(!drawmore) return;
+    ctx.fillStyle = "#bbeeee";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    if(checkwin()){
+        ctx.fillStyle = "#00ff00";
+        ctx.fillRect(camzoom *40, camzoom *50, camzoom *1100, camzoom *15);
+        ctx.fillRect(camzoom *593, camzoom *50, camzoom *15, camzoom *500);
+    }else{
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(camzoom *40, camzoom *50, camzoom *1100, camzoom *5);
+        ctx.fillRect(camzoom *598, camzoom *50, camzoom *5, camzoom *500);
+    }
+
+    if(checkwin2() && checkwin2() != checkwin()){
+        ctx.fillStyle = "#00ff00";
+        ctx.fillRect(camzoom *50, camzoom *40, camzoom *15, camzoom *500);
+        ctx.fillRect(camzoom *50, camzoom *275, camzoom *1100, camzoom *15);
+    }else{
+        ctx.fillStyle = "#000000";
+       ctx.fillRect(camzoom *50, camzoom *40, camzoom *5, camzoom *500);
+        ctx.fillRect(camzoom *50, camzoom *275, camzoom *1100, camzoom *5);
+    }
+
+    if(checkwin2() && checkwin() && checkwin() != checkwin2()){
+        win();
+    }
+    pieces.reverse();
+    pieces.forEach(piece => {
+       
+      
+        /*ctx.strokeStyle = "#462c4b"
+        if(piece == selected){
+            ctx.strokeStyle = "#962c4b"
+        }
+        ctx.beginPath();
+        ctx.arc(piece.x, piece.y, rad + 1, 0, 2 * Math.PI);
+        ctx.lineWidth = 2;
+         
+        ctx.stroke();
+        ctx.fill();
+        */
+        ctx.fillStyle = "#eeeeee";
+        ctx.fillRect(camzoom *piece.x, camzoom *piece.y, camzoom *piece.width, camzoom *piece.height);
+        ctx.fillStyle = "#111111";
+    
+        ctx.font = "bold "+ camzoom * 50 +  "px monospace";
+        ctx.fillText(piece.word, camzoom *(piece.x + 10), camzoom *(piece.y+40))
+        ctx.strokeStyle = "#111111";
+        ctx.strokeRect(camzoom *piece.x, camzoom *piece.y, camzoom *piece.width, camzoom *piece.height);
+    });
+
+
+    pieces.reverse();
+
+    checkwin()
+}
+
+    resize();
+
+function getPixel(img, x, y) {
+    return [1,1,1,x > 0 && y > 0 && x < img.width && y < img.height];
+    let canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    canvas.getContext('2d').drawImage(img, x, y, 1, 1, 0, 0, 1, 1);;
+    let pixelData = canvas.getContext('2d').getImageData(0, 0, 1, 1).data;
+    console.log(pixelData)
+    return pixelData;   
+}
+
+codestate = "question"
+
+function win(){
+    ctx.drawImage(complete, 0, 0);
+    drawmore = false;
+    solve("group2")
+}
+
+function checkwin(){
+    for(var j=0; j<2; j++){
+        won1 = true;
+        won2 = true;
+        for(var i=0; i<pieces.length; i++){
+            if(pieces[i].y > 700){
+                won1 = false;
+                won2 = false;
+            }
+            if(pieces[i].x + pieces[i].width/2 > 600 && pieces[i].gp[j]){
+                won1 = false;
+            }
+            if(pieces[i].x + pieces[i].width/2 > 600 && !pieces[i].gp[j]){
+                won2 = false;
+            }
+            if(pieces[i].x + pieces[i].width/2 < 600 && !pieces[i].gp[j]){
+                won1 = false;
+            }
+            if(pieces[i].x + pieces[i].width/2 < 600 && pieces[i].gp[j]){
+                won2 = false;
+            }
+        }
+        if(won1 || won2) return j+1;
+    }
+    return false;
+}
+
+function checkwin2(){
+    for(var j=0; j<2; j++){
+        won1 = true;
+        won2 = true;
+        for(var i=0; i<pieces.length; i++){
+            if(pieces[i].y > 700){
+                won1 = false;
+                won2 = false;
+            }
+            if(pieces[i].y + pieces[i].height/2 > 275 && pieces[i].gp[j]){
+                won1 = false;
+            }
+            if(pieces[i].y+ pieces[i].height/2  > 275 && !pieces[i].gp[j]){
+                won2 = false;
+            }
+            if(pieces[i].y + pieces[i].height/2 < 275 && !pieces[i].gp[j]){
+                won1 = false;
+            }
+            if(pieces[i].y + pieces[i].height/2 < 275 && pieces[i].gp[j]){
+                won2 = false;
+            }
+        }
+        if(won1 || won2) return j+1;
+    }
+    return false;
+}
+
+
+canvas.onmousedown = e=>{
+    clickx = e.offsetX / camzoom;
+    clicky = e.offsetY / camzoom;
+  for(var i = 0; i<pieces.length; i++){
+    piece = pieces[i];
+    if(selected == piece) {
+        selected = null;
+        draw();
+        return;
+    }
+ 
+  }
+
+  for(var i = 0; i<pieces.length; i++){
+        piece = pieces[i];
+
+     if(clickx - piece.x > 0 &&clickx - piece.x < piece.width && clicky - piece.y > 0 && clicky - piece.y < piece.height ){
+      
+       selected = piece;
+       offset = [clickx - piece.x, clicky - piece.y]
+       pieces = pieces.filter(p => p !== piece);
+        pieces.unshift(piece);
+
+       draw();
+        return;
+    }
+  }
+
+
+}
+
+canvas.onmouseup = e=>{
+     selected = null;
+}
+
+
+
+canvas.onmousemove = e => {
+    if(!selected) return;
+
+    selected.x = Math.min(Math.max(0, e.offsetX/camzoom - offset[0]), 1200-selected.width)
+    selected.y = Math.min(Math.max(0,e.offsetY/camzoom - offset[1]), 1200-selected.height);
+
+    draw();
+}
+
+
+}
+function group4 () {
+
+
+div.innerHTML = `
+   ( This riddle's text is written here just so everything fits in the venn-diagram:)<br><br><br>
+a = works near people who are experts at concealing their true emotions<br><br>
+b = generally stays facing one direction while working<br><br>
+c = might fire someone<br><br>
+d = is who you should tell when you think it's time for a raise<br><br>
+e = works closely with heads of the company<br><br>
+f = works near a mirror<br><br>
+g = sometimes customers want to talk with them<br><br>
+h = has a specific vision they're trying to make reality<br><br>
+i = appears in the credits<br><br>
+j = is in charge of multiple people at a time<br><br>
+k = you might ask them to hit you<br><br>
+l = might work closely to a colorist<br><br>
+ <input onchange = "check(this.value)"> </input>
+    <br>
+    `
+
+rad = 15;
+pieces = [
+{x: 123, y:650, word: "a", gp: [0,0,1,1]},
+{x: 123, y:500, word: "b", gp: [0,1,1,1]},
+{x: 123, y:400, word: "c", gp: [1,0,0,0]},
+{x: 123, y:150, word: "d", gp: [1,0,0,1]},
+{x: 123, y:300, word: "e", gp: [1,1,0,0]},
+{x: 123, y:250, word: "f", gp: [0,1,0,0]},
+{x: 123, y:450, word: "g", gp: [1,1,0,1]},
+{x: 123, y:600, word: "h", gp: [1,1,1,0]},
+{x: 123, y:100, word: "i", gp: [0,0,1,0]},
+{x: 123, y:350, word: "j", gp: [1,0,1,1]},
+{x: 123, y:550, word: "k", gp: [0,0,0,1]},
+{x: 123, y:200, word: "l", gp: [0,1,1,0]},
+]
+
+
+keypad = {x: 800, y:200, img:new Image()}
+
+pieces.forEach((piece, i) => {piece.height = 50, piece.width = 25 + 27 * piece.word.length, piece.y = 55 * i + 500})
+selected = null;
+offset = [0,0]
+distance = (a, b, c, d) => {return Math.sqrt((a-c)*(a-c) + (b-d)*(b-d))};
+
+const image = new Image()
+
+ s = "?????"
+
+ const complete = new Image();
+ complete.src = "complete.png"
+
+
+
+
+
+
+drawmore = true;
+
+
+
+ draw = () => {
+    camzoom = Math.min(canvas.height/1200, canvas.width / 1200);
+    if(!drawmore) return;
+    if(!drawmore) return;
+    ctx.fillStyle = "#aaaacc";
+    ctx.fillRect(0, 0, canvas.height, canvas.width);
+    if(checkwin(600, 400)){
+        ctx.strokeStyle = "#00ff00";
+        ctx.lineWidth = 15;
+    }else{
+        ctx.strokeStyle = "#000000";
+        ctx.lineWidth = 5;   
+    }
+    ctx.beginPath();
+    ctx.arc(camzoom*600, camzoom*400, camzoom*300, 0, 2 * Math.PI);
+    ctx.stroke()
+
+    if(checkwin(600, 800) && checkwin(600, 800) != checkwin(600, 400)){
+        ctx.strokeStyle = "#00ff00";
+        ctx.lineWidth = 15;
+    }else{
+        ctx.strokeStyle = "#000000";
+        ctx.lineWidth = 5;   
+    }
+    ctx.beginPath();
+        ctx.arc(camzoom*600, camzoom*800, camzoom*300, 0, 2 * Math.PI);
+        ctx.stroke()
+
+if(checkwin(400,600) && checkwin(400, 600) != checkwin(600, 800) && checkwin(400, 600) != checkwin(600, 400)){
+        ctx.strokeStyle = "#00ff00";
+        ctx.lineWidth = 15;
+    }else{
+        ctx.strokeStyle = "#000000";
+        ctx.lineWidth = 5;   
+    }
+        ctx.beginPath();
+
+        ctx.arc(camzoom*400, camzoom*600, camzoom*300, 0, 2 * Math.PI);
+        ctx.stroke()
+
+        if(checkwin(800,600) && checkwin(800, 600) != checkwin(400, 600) && checkwin(800, 600) != checkwin(600, 800) && checkwin(800, 600) != checkwin(600, 400)){
+        ctx.strokeStyle = "#00ff00";
+        ctx.lineWidth = 15;
+    }else{
+        ctx.strokeStyle = "#000000";
+        ctx.lineWidth = 5;   
+    }
+
+        ctx.beginPath();
+        ctx.arc(camzoom*800, camzoom*600, camzoom*300, 0, 2 * Math.PI);
+        ctx.stroke()
+        ctx.fillStyle = "#111111";
+        ctx.font = "bold " + 40 * camzoom + "px monospace";
+                ctx.fillText("this", camzoom*550, camzoom*570)
+        ctx.fillText("riddle's", camzoom*512, camzoom*613)
+        ctx.fillText("code", camzoom*550, camzoom*653)
+    ctx.lineWidth = 2;   
+    pieces.reverse();
+    pieces.forEach(piece => {
+       
+      
+        /*ctx.strokeStyle = "#462c4b"
+        if(piece == selected){
+            ctx.strokeStyle = "#962c4b"
+        }
+        ctx.beginPath();
+        ctx.arc(piece.x, piece.y, rad + 1, 0, 2 * Math.PI);
+        ctx.lineWidth = 2;
+         
+        ctx.stroke();
+        ctx.fill();
+        */
+        ctx.fillStyle = "#eeeeee";
+        ctx.fillRect(camzoom*piece.x, camzoom*piece.y, camzoom*piece.width, camzoom*piece.height);
+        ctx.fillStyle = "#111111";
+    
+        ctx.font = "bold "+50*camzoom*+"px monospace";
+        ctx.fillText(piece.word, camzoom*(piece.x + 10), camzoom*(piece.y+40))
+        ctx.strokeStyle = "#111111";
+        ctx.strokeRect(camzoom*piece.x, camzoom*piece.y, camzoom*piece.width, camzoom*piece.height);
+    });
+
+
+    pieces.reverse();
+
+    
+}
+rat = 1;
+resize();
+
+function getPixel(img, x, y) {
+    return [1,1,1,x > 0 && y > 0 && x < img.width && y < img.height];
+    let canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    canvas.getContext('2d').drawImage(img, x, y, 1, 1, 0, 0, 1, 1);;
+    let pixelData = canvas.getContext('2d').getImageData(0, 0, 1, 1).data;
+    console.log(pixelData)
+    return pixelData;   
+}
+
+codestate = "question"
+
+check = (val) => {
+        for(word of val.toLowerCase().split(" ")){
+            if(word == "cut" || word == "cuts")
+                solve("intro5")
+
+        }
+        
+        
+    }
+function checkwin(a, b){
+    for(var j=0; j<4; j++){
+        won = true;
+        for(var i=0; i<pieces.length; i++){
+         
+            d = distance(a, b ,pieces[i].x+pieces[i].width/2, pieces[i].y + pieces[i].height/2);
+            if(d < 300  && !pieces[i].gp[j]){
+                won = false;
+            }
+            if(d > 300 && pieces[i].gp[j]){
+                won = false;
+            }
+           
+        }
+        if(won) return j+1;
+    }
+    return false;
+}
+
+
+canvas.onmousedown = e=>{
+    clickx = e.offsetX / camzoom;
+    clicky = e.offsetY / camzoom;
+  for(var i = 0; i<pieces.length; i++){
+    piece = pieces[i];
+    if(selected == piece) {
+        selected = null;
+        draw();
+        return;
+    }
+ 
+  }
+
+  for(var i = 0; i<pieces.length; i++){
+        piece = pieces[i];
+
+     if(clickx - piece.x > 0 &&clickx - piece.x < piece.width && clicky - piece.y > 0 && clicky - piece.y < piece.height ){
+      
+       selected = piece;
+       offset = [clickx - piece.x, clicky - piece.y]
+       pieces = pieces.filter(p => p !== piece);
+        pieces.unshift(piece);
+
+       draw();
+        return;
+    }
+  }
+
+
+}
+
+canvas.onmouseup = e=>{
+     selected = null;
+}
+
+
+
+canvas.onmousemove = e => {
+    if(!selected) return;
+
+    selected.x = Math.min(Math.max(0, e.offsetX/camzoom - offset[0]), 1200-selected.width)
+    selected.y = Math.min(Math.max(0,e.offsetY/camzoom - offset[1]), 1200-selected.height);
+
+    draw();
+}
+
+
+}
+function group5 () {
+    div.innerHTML = `
+    <br><br>&nbsp;&nbsp;&nbsp;&nbsp;By the way, not every input box is necessarily for a code! If you see an place that <i>looks</i> like it's for a code in a riddle, but you don't see any mention of a code in the riddle itself, it's worth experimenting with it! Sometimes one method of input can perform multiple functions, and there's no penalty for testing things out.<br> <br> 
+    <div id = "nicetry" style = "color:red">
+    Nice try...
+    </div>
+    <input id = "input"  onchange = "checkit(this.value)">
+
+    `
+document.getElementById ('nicetry' ).style.display = "none";
+checkit = (val) => {
+    document.getElementById ('nicetry' ).style.display = "none";
+
+    document.getElementById ('input' ).value = "";
+    val.toLowerCase();
+    val2 = "";
+    for(i of val){
+        if(i >= 'a' && i <= 'z'){
+            val2 += i;
+        }
+    }
+    for(j of pieces){
+        if(j.word == val){
+                document.getElementById ('nicetry' ).style.display = "";
+
+            return;
+        }
+    }
+    if(list.includes(val2)){
+        col1.push(val2)
+        if(col1.length >= 12) scroll1 = 70 * (col1.length - 11.5)
+    }
+    else{
+        col2.push(val2)
+        if(col2.length >= 12) scroll2 = 70 * (col2.length - 11.5)
+
+    }
+        draw();
+    
+}
+
+rad = 15;
+
+list = [
+"abide",
+"arise",
+"awake",
+"backlight",
+"backslide",
+"be",
+"bear",
+"beat",
+"become",
+"befall",
+"beset",
+"beget",
+"begin",
+"behold",
+"bend",
+"bet",
+"bespeak",
+"beware",
+"bid",
+"bide",
+"bind",
+"bite",
+"bleed",
+"blow",
+"break",
+"breed",
+"bring",
+"broadcast",
+"build",
+"burn",
+"burst",
+"buy",
+"cast",
+"catch",
+"choose",
+"clad",
+"cleave",
+"cling",
+"come",
+"cost",
+"creep",
+"cut",
+"deal",
+"dig",
+"dive",
+"do",
+"draw",
+"daydream",
+"dream",
+"drink",
+"drive",
+"eat",
+"fall",
+"feed",
+"feel",
+"fight",
+"find",
+"fling",
+"fly",
+"forbid",
+"forget",
+"forgo",
+"forego",
+"foreknow",
+"forerun",
+"foresee",
+"foretell",
+"forespeak",
+"forgive",
+"forsake",
+"freeze",
+"get",
+"give",
+"go",
+"ghostwrite",
+"grind",
+"grow",
+"handwrite",
+"hang",
+"have",
+"hear",
+"hide",
+"hit",
+"hold",
+"hurt",
+"inlay",
+"input",
+"inset",
+"interlay",
+"interweave",
+"keep",
+"kneel",
+"knit",
+"know",
+"lay",
+"lead",
+"lean",
+"leap",
+"leave",
+"lend",
+"let",
+"lie",
+"prepay",
+"light",
+"lose",
+"make",
+"misspeak",
+"misdeal",
+"misgive",
+"mishear",
+"mislead",
+"misread",
+"misspeak",
+"misunderstand",
+"mean",
+"meet",
+"mow",
+"must",
+"offset",
+"outbid",
+"output",
+"overtake",
+"overdo",
+"outgrow",
+"outrun",
+"outsell",
+"outshine",
+"overtake",
+"overcome",
+"overeat",
+"overhear",
+"overshoot",
+"overthink",
+"overthrow",
+"overrun",
+"overwrite",
+"partake",
+"pay",
+"prebuild",
+"precut",
+"premake",
+"preset",
+"put",
+"read",
+"redo",
+"rebuild",
+"redeal",
+"recut",
+"regrow",
+"rehear",
+"retell",
+"remake",
+"reread",
+"rerun",
+"rethink",
+"redraw",
+"reset",
+"reteach",
+"rewrite",
+"ride",
+"ring",
+"rise",
+"run",
+"slay",
+"say",
+"see",
+"sell",
+"send",
+"set",
+"sew",
+"shake",
+"shear",
+"shed",
+"shit",
+"shine",
+"shoot",
+"show",
+"shrink",
+"shut",
+"sing",
+"sink",
+"sit",
+"sightsee",
+"sleep",
+"slide",
+"smell",
+"sow",
+"speak",
+"spend",
+"spit",
+"spread",
+"stand",
+"steal",
+"stick",
+"sting",
+"stink",
+"strike",
+"swear",
+"sweep",
+"swell",
+"swim",
+"swing",
+"take",
+"teach",
+"tear",
+"tell",
+"think",
+"throw",
+"unbend",
+"undo",
+"underdo",
+"undercut",
+"underfeed",
+"underpay",
+"undertake",
+"understand",
+"underlie",
+"undergo",
+"unlearn",
+"unstick",
+"unwind",
+"upset",
+"wake",
+"wear",
+"weep",
+"wet",
+"win",
+"withdraw",
+"withhold",
+"withstand",
+"wind",
+"wring",
+"write",]
+
+col1 = ["forget"]
+col2 = ["remember"]
+
+pieces = [
+
+{x: 123, y:550, word: "run", gp: 0},
+{x: 123, y:350, word: "love", gp: 1},
+{x: 123, y:100, word: "pretend", gp:1},
+{x: 123, y:450, word: "communicate", gp: 1},
+{x: 123, y:150, word: "discover", gp: 1},
+{x: 123, y:500, word: "play", gp: 1},
+{x: 123, y:250, word: "overthink", gp: 0},
+{x: 123, y:300, word: "fear", gp: 1},
+{x: 123, y:650, word: "withstand", gp: 0},
+{x: 123, y:200, word: "slide", gp: 0},
+{x: 123, y:600, word: "read", gp: 0},
+{x: 123, y:400, word: "choose", gp: 0},
+]
+
+
+scroll1 = 0;
+scroll2 = 0;
+pieces.forEach((piece, i) => {piece.height = 50, piece.width = 25 + 27 * piece.word.length, piece.y = 55 * (i%4) + 50; piece.x = 100 * (i - i%4) + 50})
+selected = null;
+offset = [0,0]
+distance = (a, b, c, d) => {return Math.sqrt((a-c)*(a-c) + (b-d)*(b-d))};
+
+const image = new Image()
+
+ s = "?????"
+
+ const complete = new Image();
+ complete.src = "complete.png"
+
+
+
+    rat = 1;
+
+
+drawmore = true;
+
+draw = () => {
+    canvas.height  = Math.min(window.innerWidth * 0.8 * rat, window.innerHeight * 0.8) ;
+    canvas.width  = Math.min(window.innerWidth * 0.8, window.innerHeight * 0.8 / rat);
+    camzoom = Math.min(canvas.height/1200, canvas.width / 1200);
+    if(!drawmore) return;
+
+    a = Math.min(Math.max(col1.length, col2.length), 11.5);
+    canvas.height = camzoom * 500 + camzoom * 70 * a;
+
+    ctx.fillStyle = "#aaaacc";
+
+    ctx.fillRect(0, 0, camzoom*1500, camzoom * 1500 );
+    
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(camzoom*50, camzoom*450, camzoom*1100, camzoom*5);
+        ctx.fillRect(camzoom*598, camzoom*450, camzoom*5, camzoom*70 * a);
+        ctx.font = "bold "+camzoom * 50+"px monospace";
+    if(checkwin()) win();
+    for(i = 0; i<col1.length; i++){
+        ctx.fillText("• " + col1[i], camzoom*200, camzoom*(i*70 + 505 - scroll1))
+    }
+    if(col1.length >= 12){
+        ctx.fillRect(camzoom*588, camzoom*(455 + (scroll1 * 11.5)/col1.length), camzoom*6, camzoom*11.5 * 11.5 * 70/col1.length);
+    }
+    for(i = 0; i<col2.length; i++){
+        ctx.fillText("• " + col2[i], camzoom*750, camzoom*(i*70 + 505 - scroll2))
+    }
+    if(col2.length >= 12){
+        ctx.fillRect(camzoom*1138, camzoom*455 + camzoom*(scroll2 * 11.5)/col2.length, camzoom*6, camzoom*11.5 * 11.5 * 70/col2.length);
+    }
+
+     ctx.fillStyle = "#aaaacc";
+
+    ctx.fillRect(0, 0, camzoom*1200, camzoom*450);
+  
+    pieces.reverse();
+    pieces.forEach(piece => {
+       
+      
+        /*ctx.strokeStyle = "#462c4b"
+        if(piece == selected){
+            ctx.strokeStyle = "#962c4b"
+        }
+        ctx.beginPath();
+        ctx.arc(piece.x, piece.y, rad + 1, 0, 2 * Math.PI);
+        ctx.lineWidth = 2;
+         
+        ctx.stroke();
+        ctx.fill();
+        */
+        ctx.fillStyle = "#eeeeee";
+        ctx.fillRect(camzoom*piece.x, camzoom*piece.y, camzoom*piece.width, camzoom*piece.height);
+        ctx.fillStyle = "#111111";
+    
+        ctx.font = "bold "+camzoom * 50+"px monospace";
+        ctx.fillText(piece.word, camzoom*piece.x + camzoom*10, camzoom*piece.y+camzoom*40)
+        ctx.strokeStyle = "#111111";
+        ctx.strokeRect(camzoom*piece.x, camzoom*piece.y, camzoom*piece.width, camzoom*piece.height);
+    });
+
+
+    pieces.reverse();
+
+}
+
+    resize();
+
+function getPixel(img, x, y) {
+    return [1,1,1,x > 0 && y > 0 && x < img.width && y < img.height];
+    let canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    canvas.getContext('2d').drawImage(img, x, y, 1, 1, 0, 0, 1, 1);;
+    let pixelData = canvas.getContext('2d').getImageData(0, 0, 1, 1).data;
+    console.log(pixelData)
+    return pixelData;   
+}
+
+codestate = "question"
+
+function win(){
+    ctx.drawImage(complete, 0, 0);
+    drawmore = false;
+    solve("group5")
+}
+
+function checkwin(){
+        won1 = true;
+        won2 = true;
+        for(var i=0; i<pieces.length; i++){
+            if(pieces[i].y < 450){
+                won1 = false;
+                won2 = false;
+            }
+            if(pieces[i].x > 580 && pieces[i].gp){
+                won1 = false;
+            }
+            if(pieces[i].x > 580 && !pieces[i].gp){
+                won2 = false;
+            }
+            if(pieces[i].x + pieces[i].width < 620 && !pieces[i].gp){
+                won1 = false;
+            }
+            if(pieces[i].x + pieces[i].width < 620 && pieces[i].gp){
+                won2 = false;
+            }
+        }
+        if(won2 ) return true;
+    return false;
+}
+
+
+canvas.onmousedown = e=>{
+    clickx = e.offsetX / camzoom;
+    clicky = e.offsetY / camzoom;
+  for(var i = 0; i<pieces.length; i++){
+    piece = pieces[i];
+    if(selected == piece) {
+        selected = null;
+        draw();
+        return;
+    }
+ 
+  }
+
+  for(var i = 0; i<pieces.length; i++){
+        piece = pieces[i];
+
+     if(clickx - piece.x > 0 &&clickx - piece.x < piece.width && clicky - piece.y > 0 && clicky - piece.y < piece.height ){
+      
+       selected = piece;
+       offset = [clickx - piece.x, clicky - piece.y]
+       pieces = pieces.filter(p => p !== piece);
+        pieces.unshift(piece);
+
+       draw();
+        return;
+    }
+  }
+
+
+}
+
+canvas.onmouseup = e=>{
+     selected = null;
+}
+
+window.onwheel = e => {
+    if(e.deltaY > 0){
+        if(col1.length >= 12 && e.offsetX/ camzoom < 600 && e.offsetY/ camzoom > 450){
+            scroll1 += 25;
+             if(scroll1 > 70 * (col1.length - 11.5)) scroll1 = 70 * (col1.length - 11.5);
+        
+        }
+        if(col2.length >= 12 && e.offsetX/ camzoom > 600 && e.offsetY/ camzoom > 450){
+            scroll2 += 25;
+            if(scroll2 > 70 * (col2.length - 11.5)) scroll2 = 70 * (col2.length - 11.5);
+        }
+       
+        
+    }else{
+        if(e.offsetX/ camzoom < 600 && e.offsetY/ camzoom > 450){
+            scroll1 -= 25;
+        }
+        if(e.offsetX/ camzoom > 600 && e.offsetY/ camzoom > 450){
+            scroll2 -= 25;
+        }
+        if(scroll1 < 0) scroll1 = 0;
+        if(scroll2 < 0) scroll2 = 0;
+    }
+   
+        draw();
+
+}
+
+
+canvas.onmousemove = e => {
+    if(!selected) {
+        if(e.buttons != 1) return;
+        if(col1.length >= 12 && e.offsetX/ camzoom < 600 && e.offsetY/ camzoom > 450){
+            scroll1 -=  e.movementY/ camzoom;
+             if(scroll1 > 70 * (col1.length - 11.5)) scroll1 = 70 * (col1.length - 11.5);
+                     if(scroll1 < 0) scroll1 = 0;
+        }
+        if(col2.length >= 12 && e.offsetX/ camzoom > 600 && e.offsetY/ camzoom > 450){
+
+            scroll2 -=  e.movementY/ camzoom;
+
+              if(scroll2 > 70 * (col2.length - 11.5)) scroll2 = 70 * (col2.length - 11.5);
+                      if(scroll2 < 0) scroll2 = 0;
+
+        }
+        draw();
+      
+        return;
+    }
+
+    selected.x = Math.min(Math.max(0, e.offsetX/ camzoom - offset[0]), 1200-selected.width)
+    selected.y = Math.min(Math.max(0,e.offsetY/ camzoom - offset[1]), 1200-selected.height);
+
+    draw();
+}
+}
+function group6 () {
+div.innerHTML = `
+<input id = "input" style="font-size:25px;margin:auto display:block" onchange = "check(this.value)">
+<br>
+<div style = " display: block;
+        margin:auto
+       ">
+<input id = "checkbox" type = "checkbox" style="width: 25px;
+        height: 25px;
+        padding: 0;
+        margin:auto
+        vertical-align: bottom;
+        position: relative;
+        top: -1px;
+        
+" onchange = "draw()">  <div style = "display: block;
+        margin:auto; text-align:center">Filter out guesses matching 0 crieria</div>
+</div>
+<br>
+
+<div style = " display: block;
+        margin:auto
+      ">
+<input id = "checkbox2" type = "checkbox" style="width: 25px;
+        height: 25px;
+        padding: 0;
+        margin:auto
+        vertical-align: bottom;
+        position: relative;
+        top: -1px;
+                
+
+" onchange = "draw()"> <div style = "display: block;
+        margin:auto; text-align:center">Sort guesses by number of criteria matched</div>
+</div>`
+
+list = []
+check = (val) => {
+    document.getElementById ('input' ).value = "";
+
+    if(list.length == 0){
+        list = dictionary.split("\n");
+        list = list.map(a => a.toLowerCase())
+        console.log(list.length);
+    }
+    val.toLowerCase();
+    val2 = "";
+    a = [0, 0, 0, 0];
+    for(i of val){
+        if(i >= 'a' && i <= 'z'){
+            val2 += i;
+        }
+    }
+    if(!list.includes(val2) || val2.length < 2){
+        col1.push(val2);
+        col2.push("-");
+        draw();
+        return;
+    }
+
+    for(i=0; i<val2.length; i++){
+        if(val2[i] == 'x') a[0] = 1;
+        
+        if(val2[i] == val2[i+1]) a[3] = 1;
+    }
+    if(['a', 'e', 'i', 'o', 'u'].includes(val2[0])) a[1] = 1;
+        if(val2.length == 6) a[2] = 1;
+    
+    col1.push(val2);
+    col2.push((a[0] + a[1] + a[2] + a[3]) +  " of 4");
+    if(a[0] + a[1] + a[2] + a[3] == 4) win();
+    draw();
+}
+canvas = document.getElementById ('gameCanvas' );
+ctx = canvas.getContext ('2d' );
+
+rad = 15;
+col1 = []
+col2 = []
+
+scroll1 = 0;
+keypad = {x: 800, y:200, img:new Image()}
+
+selected = null;
+offset = [0,0]
+distance = (a, b, c, d) => {return Math.sqrt((a-c)*(a-c) + (b-d)*(b-d))};
+
+const image = new Image()
+
+ s = "?????"
+
+ const complete = new Image();
+ complete.src = "complete.png"
+
+rat=1;
+
+
+
+drawmore = true;
+draw();
+
+ draw = () => {
+    canvas.height  = Math.min(window.innerWidth * 0.8 * rat, window.innerHeight * 0.8) ;
+    canvas.width  = Math.min(window.innerWidth * 0.8, window.innerHeight * 0.8 / rat);
+    camzoom = Math.min(canvas.height/1200, canvas.width / 1200);
+    if(!drawmore) return;
+
+     col = []
+    for(i=0; i<col1.length; i++){
+        col.push([col2[i], col1[i]]);
+    }
+    if(document.getElementById ('checkbox' ).checked){
+        col = col.filter(a => {return a[0][0] != '0' && a[0][0] != '-'})
+    }
+    if(document.getElementById ('checkbox2' ).checked){
+        col = col.sort()
+    }
+
+    a = Math.min(Math.max(col.length, 1), 11.5);
+    canvas.height = camzoom*150 + camzoom*70 * a;
+
+    ctx.fillStyle = "#aaaacc";
+
+    ctx.fillRect(0, 0, camzoom*1200, camzoom*150 + camzoom*70 * a);
+    
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(camzoom*50, camzoom*100, camzoom*1100, camzoom*5);
+        ctx.fillRect(camzoom*598, camzoom*100, camzoom*5, camzoom*70 * a);
+    ctx.font = "bold "+camzoom*50+"px monospace";
+
+    if(checkwin()) win();
+
+   
+
+    for(i = 0; i<col.length; i++){
+        ctx.fillText("• " + col[i][1], camzoom*200, camzoom*i*70 + camzoom*155 - camzoom*scroll1)
+    }
+    if(col.length >= 12){
+        ctx.fillRect(camzoom*588, camzoom*105 + camzoom*(scroll1 * 11.5)/col.length, camzoom*6, camzoom*11.5 * 11.5 * 70/col.length);
+    }
+    for(i = 0; i<col.length; i++){
+        ctx.fillText("• " + col[i][0], camzoom*750, camzoom*i*70 + camzoom*155 - camzoom*scroll1)
+    }
+    if(col.length >= 12){
+        ctx.fillRect(camzoom*1138, camzoom*105 + camzoom*(scroll1 * 11.5)/col.length, camzoom*6, camzoom*11.5 * 11.5 * 70/col.length);
+    }
+
+     ctx.fillStyle = "#aaaacc";
+
+    ctx.fillRect(0, 0, camzoom*1200, camzoom*100);
+          ctx.fillStyle = "#000000";
+
+        ctx.fillText("Guess", camzoom*50, camzoom*75)
+    ctx.fillText("# Criteria matched", camzoom*600, camzoom*75)
+
+    
+}
+
+
+
+codestate = "question"
+
+function win(){
+    solve("group6")
+    ctx.drawImage(complete, 0, 0);
+    drawmore = false;
+}
+
+function checkwin(){
+        won1 = true;
+        won2 = true;
+        
+    return false;
+}
+
+
+canvas.onmousedown = e=>{
+  
+
+
+
+}
+
+canvas.onmouseup = e=>{
+     
+}
+
+window.onwheel = e => {
+    if(e.deltaY/camzoom > 0){
+
+         col = []
+    for(i=0; i<col1.length; i++){
+        col.push([col2[i], col1[i]]);
+    }
+    if(document.getElementById ('checkbox' ).checked){
+        col = col.filter(a => {return a[0][0] != '0' && a[0][0] != '-'})
+    }
+    if(document.getElementById ('checkbox2' ).checked){
+        col = col.sort()
+    }
+        if(col.length >= 12 && e.offsetX/camzoom < 600 && e.offsetY/camzoom > 100){
+            scroll1 += 25;
+             if(scroll1 > 70 * (col1.length - 11.5)) scroll1 = 70 * (col.length - 11.5);
+        
+        }
+        if(col.length >= 12 && e.offsetX/camzoom > 600 && e.offsetY/camzoom > 100){
+            scroll1 += 25;
+            if(scroll1 > 70 * (col2.length - 11.5)) scroll1 = 70 * (col.length - 11.5);
+        }
+       
+        
+    }else{
+        if(e.offsetX/camzoom < 600 && e.offsetY/camzoom > 100){
+            scroll1 -= 25;
+        }
+        if(e.offsetX/camzoom > 600 && e.offsetY/camzoom > 100){
+            scroll1 -= 25;
+        }
+        if(scroll1 < 0) scroll1 = 0;
+        if(scroll1 < 0) scroll1 = 0;
+    }
+   
+        draw();
+
+}
+
+
+canvas.onmousemove = e => {
+ 
+        if(e.buttons != 1) return;
+        if(col1.length >= 12 &&  e.offsetY/camzoom > 100){
+            scroll1 -=  e.movementY/camzoom;
+             if(scroll1 > 70 * (col1.length - 11.5)) scroll1 = 70 * (col1.length - 11.5);
+                     if(scroll1 < 0) scroll1 = 0;
+        }
+        
+        draw();
+      
+        return;
+    
+
+   
+}
+
+
+draw();
+
+dictionary = `
+test
+exceed
+`
+}
+function group7 () {
+    div.innerHTML = `
+    
+    `
+rad = 15;
+pieces = [
+{x: 123, y:250, word: "groupC", gp: 1},
+
+{x: 123, y:75, word: "groupA", gp: 1},
+
+{x: 123, y:100, word: "groupB"},
+{x: 123, y:150, word: "groupD"},
+
+{x: 123, y:400, word: "groupH"},
+
+{x: 123, y:300, word: "groupF"},
+{x: 123, y:200, word: "groupE", gp: 1},
+
+{x: 123, y:450, word: "groupG", gp: 1},
+
+
+]
+
+
+keypad = {x: 800, y:200, img:new Image()}
+
+pieces.forEach(piece => {piece.img = new Image()})
+
+pieces.forEach((piece, i) => {piece.img.src = piece.word + ".png"; piece.height = 50, piece.width = 25 + 27 * piece.word.length, piece.y = 100 * i + 110; 
+piece.img.addEventListener("load", (e) => {
+    piece.img.width/=4;
+    piece.img.height/=4;
+    piece.height = piece.img.height + 6;
+    piece.width = piece.img.width + 6;
+  draw();
+});
+
+})
+selected = null;
+offset = [0,0]
+distance = (a, b, c, d) => {return Math.sqrt((a-c)*(a-c) + (b-d)*(b-d))};
+
+const image = new Image()
+
+ s = "?????"
+
+ const complete = new Image();
+ complete.src = "complete.png"
+
+
+
+    rat = 1;
+
+
+drawmore = true;
+
+draw = () => {
+    camzoom = Math.min(canvas.height/1200, canvas.width / 1200);
+    if(!drawmore) return;
+    ctx.fillStyle = "#aaaacc";
+    ctx.fillRect(0, 0, camzoom*1200, camzoom*1200);
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(camzoom*50, camzoom*50, camzoom*1100, camzoom*5);
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(camzoom*598, camzoom*50, camzoom*5, camzoom*1000);
+    pieces.reverse();
+    pieces.forEach(piece => {
+       
+      
+        /*ctx.strokeStyle = "#462c4b"
+        if(piece == selected){
+            ctx.strokeStyle = "#962c4b"
+        }
+        ctx.beginPath();
+        ctx.arc(piece.x, piece.y, rad + 1, 0, 2 * Math.PI);
+        ctx.lineWidth = 2;
+         
+        ctx.stroke();
+        ctx.fill();
+        */
+        ctx.fillStyle = "#eeeeee";
+        ctx.fillRect(camzoom*piece.x, camzoom*piece.y, camzoom*piece.width, camzoom*piece.height);
+        ctx.fillStyle = "#111111";
+    
+
+        ctx.drawImage(piece.img, camzoom*piece.x+camzoom*3, camzoom*piece.y+camzoom*3, camzoom*piece.img.width, camzoom*piece.img.height);
+
+        ctx.strokeStyle = "#111111";
+        ctx.strokeRect(camzoom*piece.x, camzoom*piece.y, camzoom*piece.width, camzoom*piece.height);
+    });
+
+
+    pieces.reverse();
+
+    checkwin()
+}
+
+    resize();
+
+function getPixel(img, x, y) {
+    return [1,1,1,x > 0 && y > 0 && x < img.width && y < img.height];
+    let canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    canvas.getContext('2d').drawImage(img, x, y, 1, 1, 0, 0, 1, 1);;
+    let pixelData = canvas.getContext('2d').getImageData(0, 0, 1, 1).data;
+    console.log(pixelData)
+    return pixelData;   
+}
+
+codestate = "question"
+
+function win(){
+    ctx.drawImage(complete, 0, 0);
+    drawmore = false;
+    solve("group1")
+}
+
+function checkwin(){
+    won1 = true;
+    won2 = true;
+    for(var i=0; i<pieces.length; i++){
+        if(pieces[i].x + pieces[i].width/2 > 600 && pieces[i].gp){
+            won1 = false;
+        }
+        if(pieces[i].x + pieces[i].width/2 > 600 && !pieces[i].gp){
+            won2 = false;
+        }
+        if(pieces[i].x + pieces[i].width/2 < 600 && !pieces[i].gp){
+            won1 = false;
+        }
+        if(pieces[i].x + pieces[i].width/2 < 600 && pieces[i].gp){
+            won2 = false;
+        }
+    }
+    if(won1 || won2) win();
+}
+
+
+canvas.onmousedown = e=>{
+    clickx = e.offsetX / camzoom;
+    clicky = e.offsetY / camzoom;
+  for(var i = 0; i<pieces.length; i++){
+    piece = pieces[i];
+    if(selected == piece) {
+        selected = null;
+        draw();
+        return;
+    }
+ 
+  }
+
+  for(var i = 0; i<pieces.length; i++){
+        piece = pieces[i];
+
+     if(clickx - piece.x > 0 &&clickx - piece.x < piece.width && clicky - piece.y > 0 && clicky - piece.y < piece.height ){
+      
+       selected = piece;
+       offset = [clickx - piece.x, clicky - piece.y]
+       pieces = pieces.filter(p => p !== piece);
+        pieces.unshift(piece);
+
+       draw();
+        return;
+    }
+  }
+
+
+}
+
+canvas.onmouseup = e=>{
+     selected = null;
+}
+
+
+
+canvas.onmousemove = e => {
+    if(!selected) return;
+
+    selected.x = Math.min(Math.max(0, e.offsetX/camzoom - offset[0]), 1200-selected.width)
+    selected.y = Math.min(Math.max(0,e.offsetY/camzoom - offset[1]), 1200-selected.height);
+
+    draw();
+}
+
+}
+
+function nexus1 () {
+
+}
+function nexus2 () {
+
+}
+function nexus3 () {
+
+}
+function nexus4 () {
+
+}
+function nexus5 () {
+
+}
+function nexus6 () {
+
+}
+
+function magic () {
+
+}
+
+function divide1 () {
+
+}
+
+
+</script>
+</html>
