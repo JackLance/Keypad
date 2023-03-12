@@ -1,0 +1,845 @@
+<!doctype html>
+<html lang="en" >
+<body >
+    <div style = "display:flex">
+ 
+    </div>
+<canvas id="gameCanvas"width=1200 height=1200 ></canvas>
+</div>
+</body>
+<script>
+
+document.addEventListener('contextmenu', event => event.preventDefault());
+
+
+canvas = document.getElementById ('gameCanvas' );
+ctx = canvas.getContext ('2d' );
+
+
+
+ const complete = new Image();
+ complete.src = "complete.png"
+
+distance = (a, b, c, d) => {return Math.sqrt((a-c)*(a-c) + (b-d)*(b-d))};
+
+clockwise = (a, b, c, d, e, f) => { return (c-a) * (f-b) - (e-a) * (d-b) > 0}
+
+crossing = (a, b, c, d, e, f, g, h) => {return (clockwise(a, b, e, f, g, h) != clockwise(c, d, e, f, g, h)) && (clockwise(a, b, c, d, e, f) != clockwise(a, b, c, d, g, h))}
+
+inside = (a, b, c, d, e, f, g, h) => { return ((clockwise(a, b, c, d, e, f) == clockwise(a, b, e, f, g, h)) && (clockwise(a, b, e, f, g, h) == clockwise(a, b, g, h, c, d)));
+}
+
+camerazoom = 1;
+camera = [0,0]
+mousedown = false;
+
+
+drawmore = true;
+rad=8
+start = {x:100, y:400, col:"#222222"}
+end = {x:900, y:400, col:"#222222"}
+
+
+cols = ["#4444ff", "#ff7744", "#44ff44",  "#ff44ff", "#44ffff", "#ffff44", ];
+
+path = []
+
+balls = [start, end,  {x:300, y:300,}, {x:400, y:200,v:0},  {x:600, y:200},{x:700, y:300,v:0, ang:89}, {x:700, y:500,},{x:600, y:600, v:0},  {x:400, y:600, },  {x:300, y:500,v:0, ang:269}, ]
+
+//balls = [start, end, {x:250, y:200, v: 0},  {x:250, y:600, v: 1}, {x:550, y:200, v: 1},  {x:550, y:600, v: 0},]
+//balls = [start, end, {x:200, y:250, v: 2},  {x:200, y:550, v: 0}, {x:600, y:250, v: 1},  {x:600, y:550, v: 2},  {x:400, y:200, v: 1},  {x:400, y:600, v: 0}]
+
+//balls = [start, end, {x:200, y:250, v: 0},  {x:200, y:550, v: 1}, {x:600, y:250, v: 2},  {x:600, y:550, v: 3},  {x:400, y:200, v: 4},  {x:400, y:600, v: 5}]
+lines = [{x1: -10000, x2: start.x, y1: start.y, y2: start.y, col:"#222222"}, {x1: end.x, x2: 10000, y1: end.y, y2: end.y, col:"#222222"}]
+
+
+balls.forEach(ball => {
+    ball.x += Math.random(), 
+    ball.y += Math.random();
+    if(ball.ang != undefined) ball.ang /= 360;
+    if(ball.ang != undefined) ball.ang *= 6.282;
+    if(ball == start || ball == end) return;
+    ball.col = cols[ball.v]
+    ball.col2 = ball.col
+})
+
+lines = [{x1: -10000, x2: start.x, y1: start.y, y2: start.y, col:"#222222"}, {x1: end.x, x2: 10000, y1: end.y, y2: end.y, col:"#222222"}]
+gates=[]
+//gates = [{s: balls[2], e: balls[3], n:2}, {s: balls[4], e: balls[5], n:2}]
+
+
+function arc(a, b, c, d, e){
+    
+    ctx.arc(a.x, a.y, rad, Math.atan2(b[1]-a.y, b[0]-a.x), Math.atan2(c[1]-a.y, c[0]-a.x), d)
+    st = Math.atan2(b[1]-a.y, b[0]-a.x)
+    en = Math.atan2(c[1]-a.y, c[0]-a.x)
+    md = e.ang;
+    if(d) [st, en] = [en, st];
+    while(en < st) en += 6.282
+    while(en-6.282 > st) en-=6.282
+    while(md < st) md += 6.282
+    while(md-6.282 > st) md-=6.282
+    if(md < en) e.anglewin = true;
+
+    gates.forEach(gate => {
+        if(gate.s.x == a.x){
+            md = Math.atan2(gate.e.y - a.y, gate.e.x - a.x);
+            while(md < st) md += 6.282
+            while(md-6.282 > st) md-=6.282
+            if(md < en) gate.p++
+        }
+        if(gate.e.x == a.x){
+            md = Math.atan2(gate.s.y - a.y, gate.s.x - a.x);
+            while(md < st) md += 6.282
+            while(md-6.282 > st) md-=6.282
+            if(md < en) gate.p++
+        }
+    })
+}
+
+function fillin(polygon){
+    ctx.beginPath();
+
+
+        
+       
+
+    if(path.length >= 1){
+        ctx.moveTo(polygon[polygon.length-1].o.x, polygon[polygon.length-1].o.y);
+        prev = [polygon[polygon.length-1].o.x, polygon[polygon.length-1].o.y]
+    }
+    rad += 4
+     for(var i=0; i<polygon.length - 1 ;i++){
+         ctx.strokeStyle = "#222222"
+        
+        dx = polygon[i+1].o.x - polygon[i].o.x;
+        dy = polygon[i+1].o.y - polygon[i].o.y;
+        dx *= rad / distance(polygon[i].o.x, polygon[i].o.y, polygon[i+1].o.x, polygon[i+1].o.y);
+        dy *= rad / distance(polygon[i].o.x, polygon[i].o.y, polygon[i+1].o.x, polygon[i+1].o.y);
+        if(polygon[i].cw && polygon[i+1].cw){
+
+            arc(polygon[i].o, prev, [polygon[i].o.x - dy, polygon[i].o.y + dx], true);
+            //ctx.lineTo(polygon[i].o.x - dy, polygon[i].o.y + dx );
+            ctx.lineTo(polygon[i+1].o.x - dy, polygon[i+1].o.y + dx);
+            prev = [polygon[i+1].o.x - dy, polygon[i+1].o.y + dx]
+        }else if(polygon[i].cw == false && polygon[i+1].cw == false){
+            arc(polygon[i].o, prev, [polygon[i].o.x + dy, polygon[i].o.y - dx]);
+
+            //ctx.lineTo(polygon[i].o.x + dy, polygon[i].o.y - dx );
+            ctx.lineTo(polygon[i+1].o.x + dy, polygon[i+1].o.y - dx);
+            prev = [polygon[i+1].o.x + dy, polygon[i+1].o.y - dx]
+        }else if(polygon[i].cw && polygon[i+1].cw == false){
+            
+            theta = Math.acos(2*rad / distance(polygon[i].o.x, polygon[i].o.y, polygon[i+1].o.x, polygon[i+1].o.y));
+            rx = dx * Math.cos(theta) - dy * Math.sin(theta)
+            ry = dy * Math.cos(theta) + dx * Math.sin(theta)
+            arc(polygon[i].o, prev, [polygon[i].o.x +rx, polygon[i].o.y + ry], true);
+            //ctx.lineTo(polygon[i].o.x + rx , polygon[i].o.y + ry );
+            ctx.lineTo(polygon[i+1].o.x - rx, polygon[i+1].o.y - ry);
+            prev = [polygon[i+1].o.x - rx, polygon[i+1].o.y - ry]
+        }
+        else if(polygon[i].cw == false && polygon[i+1].cw ){
+            
+            theta = Math.acos(2*rad / distance(polygon[i].o.x, polygon[i].o.y, polygon[i+1].o.x, polygon[i+1].o.y));
+            rx = dx * Math.cos(theta) - dy * Math.sin(theta)
+            ry = dy * Math.cos(theta) + dx * Math.sin(theta)
+            arc(polygon[i].o, prev, [polygon[i].o.x -rx, polygon[i].o.y - ry]);
+            //ctx.lineTo(polygon[i].o.x - rx , polygon[i].o.y - ry );
+            ctx.lineTo(polygon[i+1].o.x + rx, polygon[i+1].o.y + ry);
+            prev = [polygon[i+1].o.x + rx, polygon[i+1].o.y + ry]
+
+        }
+        else if(polygon[i].cw == undefined && polygon[i+1].cw ){
+            
+            theta = Math.acos(rad / distance(polygon[i].o.x, polygon[i].o.y, polygon[i+1].o.x, polygon[i+1].o.y));
+            theta *= -1;
+            rx = dx * Math.cos(theta) - dy * Math.sin(theta)
+            ry = dy * Math.cos(theta) + dx * Math.sin(theta)
+
+            ctx.lineTo(polygon[i].o.x , polygon[i].o.y  );
+            ctx.lineTo(polygon[i+1].o.x - rx, polygon[i+1].o.y - ry);
+            prev = [polygon[i+1].o.x - rx, polygon[i+1].o.y - ry]
+        }
+        else if(polygon[i].cw == undefined && polygon[i+1].cw == false ){
+            theta = Math.acos(rad / distance(polygon[i].o.x, polygon[i].o.y, polygon[i+1].o.x, polygon[i+1].o.y));
+
+            rx = dx * Math.cos(theta) - dy * Math.sin(theta)
+            ry = dy * Math.cos(theta) + dx * Math.sin(theta)
+            ctx.lineTo(polygon[i].o.x , polygon[i].o.y  );
+            ctx.lineTo(polygon[i+1].o.x - rx, polygon[i+1].o.y - ry);
+            prev = [polygon[i+1].o.x - rx, polygon[i+1].o.y - ry]
+        }
+        else if(polygon[i].cw && polygon[i+1].cw == undefined ){
+           
+            theta = Math.acos(rad / distance(polygon[i].o.x, polygon[i].o.y, polygon[i+1].o.x, polygon[i+1].o.y));
+            rx = dx * Math.cos(theta) - dy * Math.sin(theta)
+            ry = dy * Math.cos(theta) + dx * Math.sin(theta)
+            arc(polygon[i].o, prev, [polygon[i].o.x +rx, polygon[i].o.y + ry], true);
+            //ctx.lineTo(polygon[i].o.x + rx, polygon[i].o.y + ry );
+            ctx.lineTo(polygon[i+1].o.x, polygon[i+1].o.y );
+            prev = [polygon[i+1].o.x, polygon[i+1].o.y]
+        }
+        else if(polygon[i].cw == false && polygon[i+1].cw == undefined ){
+           
+            theta = Math.acos(rad / distance(polygon[i].o.x, polygon[i].o.y, polygon[i+1].o.x, polygon[i+1].o.y));
+            theta *= -1;
+            rx = dx * Math.cos(theta) - dy * Math.sin(theta)
+            ry = dy * Math.cos(theta) + dx * Math.sin(theta)
+            arc(polygon[i].o, prev, [polygon[i].o.x + rx, polygon[i].o.y + ry]);
+            //ctx.lineTo(polygon[i].o.x - rx, polygon[i].o.y - ry );
+            ctx.lineTo(polygon[i+1].o.x , polygon[i+1].o.y );
+            prev = [polygon[i+1].o.x, polygon[i+1].o.y]
+
+        }
+        else{
+            ctx.lineTo(polygon[i].o.x, polygon[i].o.y );
+            ctx.lineTo(polygon[i+1].o.x, polygon[i+1].o.y );
+            prev = [polygon[i+1].o.x, polygon[i+1].o.y]
+
+        }
+
+        
+         
+     }
+     rad -= 4;
+
+     ctx.fill();
+}
+
+
+function itspolygontime(){
+     
+     pathsofar = []
+     polygons = []
+     edges = []
+     balls.forEach(ball => {
+        hits = []
+        for(var i=0; i<path.length; i++){
+            
+            if(path[i].o == ball){
+                hits.push(i);
+            }
+        }
+
+        if(hits.length == 0) return;
+        ball.firsthit = hits[0]
+        a = "R"
+        b = "L"
+        if(path[hits[0]].cw){
+            [a, b] = [b, a];
+        }
+        edges[[hits[0], a]] = [(hits[0] + 1) , a];
+        [a, b] = [b, a];
+        for(var i=1; i<hits.length; i++){
+            edges[[hits[i-1], a]] = [(hits[i] + 1),a];
+            edges[[hits[i], a]] = [(hits[i-1] + 1),a];
+            [a, b] = [b, a];
+        }
+        edges[[hits[hits.length-1],a]] = [(hits[hits.length-1] + 1),a];
+
+     })
+
+     for(a of ["L", "R"]){
+         for(i=0; i<path.length-1; i++){
+            if(!edges[[i, a]]) continue;
+            poly = []
+            poly["balls"] = [];
+            poly.push(path[i]);
+            z = edges[[i,a]][0];
+            edges[[i,a]] = false;
+            poly.zs = [];
+            poly.letter = a;
+            poly.zs.push(z);
+            if(path[i].o != start && path[i].o != end &&path[i].o.firsthit == i && ((a=="R")!=(path[i].cw))){
+                path[i].o.done = true;
+                poly.balls.push(path[i].o)
+            }
+            while(z != i){
+                
+                if(path[z].o != start && path[z].o != end && path[z].o.firsthit == z && ((a=="R")!=(path[z].cw))){
+                    path[z].o.done = true;
+                    poly.balls.push(path[z].o)
+                }
+                
+                poly.push(path[z]);
+                if(edges[[z,a]][0] == path.length) {
+                    val = {"L":-10000, "R":10000}[a]
+                    poly.push({o:{x:10000, y: 200}})
+                    poly.push({o:{x:10000, y: val}})
+                    poly.push({o:{x:-10000, y: val}})
+                    poly.push({o:{x:-10000, y: 200}})
+                    edges[[z,a]] = false;
+                    z = 0;
+                    poly.zs.push(z);
+                }
+                else{
+                    temp= [z,a];
+                    z = edges[temp][0];
+                    poly.zs.push(z);
+                    edges[temp] = false;
+                }
+            }
+
+
+            polygons.push(poly);
+         }
+    }
+
+
+     //polygons.push([{o:{x:-10000, y: -10000}}, {o:{x:-10000, y: 200}}, ...pathsofar, {o:{x:10000, y: 200}}, {o:{x:10000, y: -10000}}])
+     //polygons.push([{o:{x:-10000, y: 10000}}, {o:{x:-10000, y: 200}}, ...pathsofar, {o:{x:10000, y: 200}}, {o:{x:10000, y: 10000}}])
+
+    polygons.forEach(polygon => {
+
+
+        //if(!polygon.balls) polygon.balls = []
+        balls.forEach(ball => {
+            if(!!ball.done) return;
+            if(ball == start || ball == end) return;
+            for(var i=0; i<polygon.length; i++){
+                if(ball == polygon[i].o) {
+                    return;
+                }
+            }
+            ins = false;
+            for(var i=0; i<polygon.length; i++){
+                j = (i+1)%polygon.length;
+                if(crossing(polygon[i].o.x, polygon[i].o.y, polygon[j].o.x, polygon[j].o.y, ball.x, ball.y, ball.x + 1, ball.y + 50000)){
+
+                    ins = !ins;
+                }
+            }
+            if(ins){
+                ball.done = polygon;
+                polygon.balls.push(ball);
+
+            }
+        })
+     })
+
+    won = true;
+    colshown = []
+    flash = []
+     polygons.reverse()
+     polygons.forEach(polygon => {
+        fil = "white";
+        polygon.balls.forEach(ball => {
+            if(ball.v == undefined) return;
+            if(fil == "white"){
+                fil = ball.col2;
+            }
+            if(fil != ball.col2){
+                won = false;
+                fil = "#654321";
+                polygon.balls.forEach(b => {
+                    if(b.v == undefined) return;
+                    if(!flash.includes(b)){
+                        flash.push(b);
+                    }
+                })
+            }
+        })
+        ctx.fillStyle = fil
+        if(fil != "white" && colshown.includes(fil)) {
+
+
+            won = false;
+            balls.forEach(ball => {
+                if(!flash.includes(ball) && ball.col2 == fil){
+                    flash.push(ball);
+                }
+            })
+        }
+        colshown.push(fil)
+
+        //fillin(polygon);
+        
+     })
+
+     balls.forEach(ball => {
+
+        if(!ball.anglewin) {
+            flash.push(ball);
+            won = false;
+        }
+     });
+     fgates = []
+     gates.forEach(gate => {if(gate.p != gate.n) {fgates.push(gate); won = false;}})
+
+     flashing(flash);
+     if(won) win();
+}
+
+function flashing(f){
+   f.forEach(ball => {
+        let bc = ball.col2;
+        setTimeout(() => {ball.col = "red"; draw()}, 200);
+        setTimeout(() => {ball.col = ball.col2; draw()}, 400);
+        setTimeout(() => {ball.col = "red"; draw()}, 600);
+        setTimeout(() => {ball.col = ball.col2; draw()}, 800);
+        setTimeout(() => {ball.col = "red"; draw()}, 1000);
+        setTimeout(() => {ball.col = ball.col2; draw()}, 1200);
+    })
+   fgates.forEach(ball => {
+        let bc = ball.col2;
+        setTimeout(() => {ball.col = "red"; draw()}, 200);
+        setTimeout(() => {ball.col = ""; draw()}, 400);
+        setTimeout(() => {ball.col = "red"; draw()}, 600);
+        setTimeout(() => {ball.col = ""; draw()}, 800);
+        setTimeout(() => {ball.col = "red"; draw()}, 1000);
+        setTimeout(() => {ball.col = ""; draw()}, 1200);
+    })
+}
+
+function draw(checkfinal){
+            ctx.lineWidth = 6;
+            ctx.lineCap = "round";
+    if(!drawmore) return;
+    //if(!force && !pathstarted && path.length > 0) return;
+    ctx.fillStyle = "#dddddd";
+    ctx.fillRect(0,0,4000,4000)
+    balls.forEach(ball => {
+        ball.done = false; 
+        ball.firsthit = false; 
+        ball.anglewin = true; 
+        if(ball.ang != undefined) 
+            ball.anglewin = false;})
+    
+    lines.forEach(line => {
+       
+      
+        ctx.strokeStyle = line.col
+      
+        ctx.beginPath();
+        ctx.moveTo(line.x1, line.y1 );
+        ctx.lineTo(line.x2, line.y2 );
+         
+        ctx.stroke();
+
+       
+    });
+
+    gates.forEach(line => {
+        
+        line.p = 0;
+       
+    });
+
+    ctx.beginPath();
+    if(path.length >= 1){
+        ctx.moveTo(path[0].o.x, path[0].o.y)
+        prev = [path[0].o.x, path[0].o.y]
+    }
+    rad+=ctx.lineWidth/2 + 1;
+     for(var i=0; i<path.length - 1 ;i++){
+         ctx.strokeStyle = "#222222"
+        
+        dx = path[i+1].o.x - path[i].o.x;
+        dy = path[i+1].o.y - path[i].o.y;
+        dx *= rad / distance(path[i].o.x, path[i].o.y, path[i+1].o.x, path[i+1].o.y);
+        dy *= rad / distance(path[i].o.x, path[i].o.y, path[i+1].o.x, path[i+1].o.y);
+        if(path[i].cw && path[i+1].cw){
+            arc(path[i].o, prev, [path[i].o.x - dy, path[i].o.y + dx], true, path[i].o);
+            //ctx.lineTo(path[i].o.x - dy, path[i].o.y + dx );
+            gates.forEach(gate => {if(crossing(gate.s.x, gate.s.y, gate.e.x, gate.e.y, path[i].o.x - dy, path[i].o.y + dx, path[i+1].o.x - dy, path[i+1].o.y + dx)) gate.p++;})
+            ctx.lineTo(path[i+1].o.x - dy, path[i+1].o.y + dx);
+            prev = [path[i+1].o.x - dy, path[i+1].o.y + dx]
+        }else if(path[i].cw == false && path[i+1].cw == false){
+            arc(path[i].o, prev, [path[i].o.x + dy, path[i].o.y - dx], false, path[i].o);
+
+            //ctx.lineTo(path[i].o.x + dy, path[i].o.y - dx );
+            gates.forEach(gate => {if(crossing(gate.s.x, gate.s.y, gate.e.x, gate.e.y, path[i].o.x + dy, path[i].o.y - dx, path[i+1].o.x + dy, path[i+1].o.y - dx)) gate.p++;})
+            ctx.lineTo(path[i+1].o.x + dy, path[i+1].o.y - dx);
+            prev = [path[i+1].o.x + dy, path[i+1].o.y - dx]
+        }else if(path[i].cw && path[i+1].cw == false){
+            
+            theta = Math.acos(2*rad / distance(path[i].o.x, path[i].o.y, path[i+1].o.x, path[i+1].o.y));
+            rx = dx * Math.cos(theta) - dy * Math.sin(theta)
+            ry = dy * Math.cos(theta) + dx * Math.sin(theta)
+            arc(path[i].o, prev, [path[i].o.x +rx, path[i].o.y + ry], true, path[i].o);
+            //ctx.lineTo(path[i].o.x + rx , path[i].o.y + ry );
+            gates.forEach(gate => {if(crossing(gate.s.x, gate.s.y, gate.e.x, gate.e.y, path[i].o.x +rx, path[i].o.y + ry, path[i+1].o.x - rx, path[i+1].o.y - ry)) gate.p++;})
+            ctx.lineTo(path[i+1].o.x - rx, path[i+1].o.y - ry);
+            prev = [path[i+1].o.x - rx, path[i+1].o.y - ry]
+        }
+        else if(path[i].cw == false && path[i+1].cw ){
+            
+            theta = Math.acos(2*rad / distance(path[i].o.x, path[i].o.y, path[i+1].o.x, path[i+1].o.y));
+            rx = dx * Math.cos(theta) + dy * Math.sin(theta)
+            ry = dy * Math.cos(theta) - dx * Math.sin(theta)
+            arc(path[i].o, prev, [path[i].o.x +rx, path[i].o.y + ry], false, path[i].o);
+            //ctx.lineTo(path[i].o.x - rx , path[i].o.y - ry );
+            gates.forEach(gate => {if(crossing(gate.s.x, gate.s.y, gate.e.x, gate.e.y, path[i].o.x +rx, path[i].o.y + ry, path[i+1].o.x - rx, path[i+1].o.y - ry)) gate.p++;})
+            ctx.lineTo(path[i+1].o.x - rx, path[i+1].o.y - ry);
+            prev = [path[i+1].o.x - rx, path[i+1].o.y - ry]
+
+        }
+        else if(path[i].cw == undefined && path[i+1].cw ){
+            
+            theta = Math.acos(rad / distance(path[i].o.x, path[i].o.y, path[i+1].o.x, path[i+1].o.y));
+            theta *= -1;
+            rx = dx * Math.cos(theta) - dy * Math.sin(theta)
+            ry = dy * Math.cos(theta) + dx * Math.sin(theta)
+
+            ctx.lineTo(path[i].o.x , path[i].o.y  );
+            ctx.lineTo(path[i+1].o.x - rx, path[i+1].o.y - ry);
+            gates.forEach(gate => {if(crossing(gate.s.x, gate.s.y, gate.e.x, gate.e.y, path[i].o.x , path[i].o.y, path[i+1].o.x - rx, path[i+1].o.y - ry)) gate.p++;})
+            prev = [path[i+1].o.x - rx, path[i+1].o.y - ry]
+        }
+        else if(path[i].cw == undefined && path[i+1].cw == false ){
+           
+            theta = Math.acos(rad / distance(path[i].o.x, path[i].o.y, path[i+1].o.x, path[i+1].o.y));
+
+            rx = dx * Math.cos(theta) - dy * Math.sin(theta)
+            ry = dy * Math.cos(theta) + dx * Math.sin(theta)
+            ctx.lineTo(path[i].o.x , path[i].o.y  );
+            ctx.lineTo(path[i+1].o.x - rx, path[i+1].o.y - ry);
+            gates.forEach(gate => {if(crossing(gate.s.x, gate.s.y, gate.e.x, gate.e.y, path[i].o.x , path[i].o.y, path[i+1].o.x - rx, path[i+1].o.y - ry)) gate.p++;})
+            prev = [path[i+1].o.x - rx, path[i+1].o.y - ry]
+        }
+        else if(path[i].cw && path[i+1].cw == undefined ){
+           
+            theta = Math.acos(rad / distance(path[i].o.x, path[i].o.y, path[i+1].o.x, path[i+1].o.y));
+            rx = dx * Math.cos(theta) - dy * Math.sin(theta)
+            ry = dy * Math.cos(theta) + dx * Math.sin(theta)
+            arc(path[i].o, prev, [path[i].o.x +rx, path[i].o.y + ry], true, path[i].o);
+            //ctx.lineTo(path[i].o.x + rx, path[i].o.y + ry );
+            ctx.lineTo(path[i+1].o.x, path[i+1].o.y );
+             gates.forEach(gate => {if(crossing(gate.s.x, gate.s.y, gate.e.x, gate.e.y, path[i].o.x +rx, path[i].o.y + ry, path[i+1].o.x, path[i+1].o.y)) gate.p++;})
+            prev = [path[i+1].o.x, path[i+1].o.y]
+        }
+        else if(path[i].cw == false && path[i+1].cw == undefined ){
+           
+            theta = Math.acos(rad / distance(path[i].o.x, path[i].o.y, path[i+1].o.x, path[i+1].o.y));
+            theta *= -1;
+            rx = dx * Math.cos(theta) - dy * Math.sin(theta)
+            ry = dy * Math.cos(theta) + dx * Math.sin(theta)
+            arc(path[i].o, prev, [path[i].o.x + rx, path[i].o.y + ry], false, path[i].o);
+            //ctx.lineTo(path[i].o.x - rx, path[i].o.y - ry );
+            ctx.lineTo(path[i+1].o.x , path[i+1].o.y );
+            gates.forEach(gate => {if(crossing(gate.s.x, gate.s.y, gate.e.x, gate.e.y, path[i].o.x + rx, path[i].o.y + ry, path[i+1].o.x, path[i+1].o.y)) gate.p++;})
+            prev = [path[i+1].o.x, path[i+1].o.y]
+
+        }
+        else{
+            ctx.lineTo(path[i].o.x, path[i].o.y );
+            ctx.lineTo(path[i+1].o.x, path[i+1].o.y );
+            prev = [path[i+1].o.x, path[i+1].o.y]
+            gates.forEach(gate => {if(crossing(gate.s.x, gate.s.y, gate.e.x, gate.e.y, path[i].o.x , path[i].o.y, path[i+1].o.x , path[i+1].o.y )) gate.p++;})
+        }
+
+        
+        
+         
+     }
+    rad-=ctx.lineWidth/2 + 1;
+             ctx.stroke ();
+     gates.forEach(line => {
+        ctx.lineWidth = 6;
+        ctx.setLineDash([5 , 15]);
+        ctx.strokeStyle = "#888888"
+        if(line.p > line.n){
+            ctx.setLineDash([1]);
+            ctx.strokeStyle = "#ff0000"
+        }
+        ctx.beginPath();
+        ctx.moveTo(line.s.x, line.s.y );
+        ctx.lineTo(line.e.x, line.e.y );
+         
+        ctx.stroke();
+        ctx.setLineDash([]);
+        m = line.n - line.p;
+        mx = (line.s.x + line.e.x)/2
+        my = (line.s.y + line.e.y)/2
+        dx = line.e.x - line.s.x;
+        dy = line.e.y - line.s.y;
+        d = distance(line.s.x, line.s.y, line.e.x, line.e.y);
+        ctx.strokeStyle = "#0000ff"
+        if(line.col == "red") {
+            ctx.lineWidth = 10;
+            ctx.strokeStyle = "red"
+        }
+        for(i = 0; i<m; i++){
+            ctx.beginPath();
+            ctx.moveTo(mx + ((i-(m-1)/2)*10*dx/d)+10*dy/d, my + ((i-(m-1)/2)*10*dy/d)- 10*dx/d );
+            ctx.lineTo(mx + ((i-(m-1)/2)*10*dx/d)- 10*dy/d, my + ((i-(m-1)/2)*10*dy/d)+ 10*dx/d );
+            ctx.stroke();
+        }
+       
+    });
+
+    
+     if(checkfinal && !pathstarted && path.length >= 2){
+        itspolygontime();
+       
+     }
+
+    
+
+     balls.forEach(ball => {
+        ctx.strokeStyle = "#000000"
+
+        if(ball == end && !(!pathstarted && !path.size)) {
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, rad+3 , 0, 2 * Math.PI);
+            ctx.lineWidth = 2;
+            ctx.fillStyle = "#222222"
+            ctx.strokeStyle = "#222222"
+            ctx.fill();
+            ctx.stroke();
+            return;
+        }
+        if(ball == start && !(pathstarted  || won )){
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, rad +3, 0, 2 * Math.PI);
+            ctx.lineWidth = 2;
+            ctx.fillStyle = "#222222"
+            ctx.strokeStyle = "#222222"
+            ctx.fill();
+            ctx.stroke();
+            return;
+        }
+        //if(ball == start && (pathstarted || won )) return;
+        //if(ball == start || ball == end) rad += 3
+        ctx.fillStyle = ball.col
+        if(ball.v == undefined) ctx.fillStyle = "#000000"
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, rad + (ball.col == "red"?3:0), 0, 2 * Math.PI);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = "#222222"
+
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = (ball.v == 0 || ball.v == 1)?"#ffffff":"#000000"
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = "#000000"
+
+        ctx.font = "bold 20px monospace";
+        if(colorblind && ball.v != undefined )ctx.strokeText(ball.v+1, ball.x-6, ball.y+6)
+        if(colorblind && ball.v != undefined )ctx.fillText(ball.v+1, ball.x-6, ball.y+6)
+        if(ball.ang != undefined){
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = "#ffffff"
+
+            if(ball.anglewin) {
+                ctx.strokeStyle = "#44ff44"
+                ctx.lineWidth = 3;
+            }
+            rad-=2;
+      
+            ctx.beginPath();
+            ctx.moveTo(ball.x + rad*(Math.cos(ball.ang + 3.1415)), ball.y + rad*(Math.sin(ball.ang + 3.1415)))
+            ctx.lineTo(ball.x + rad*(Math.cos(ball.ang)), ball.y + rad*(Math.sin(ball.ang)))
+            ctx.stroke()
+            ctx.beginPath();
+            ctx.moveTo(ball.x + rad*(Math.cos(ball.ang + 1.5707)), ball.y + rad*(Math.sin(ball.ang + 1.5707)))
+            ctx.lineTo(ball.x + rad*(Math.cos(ball.ang)), ball.y + rad*(Math.sin(ball.ang)))
+            ctx.stroke()
+            ctx.beginPath();
+            ctx.moveTo(ball.x + rad*(Math.cos(ball.ang + 4.7124)), ball.y + rad*(Math.sin(ball.ang + 4.7124)))
+            ctx.lineTo(ball.x + rad*(Math.cos(ball.ang)), ball.y + rad*(Math.sin(ball.ang)))
+
+            ctx.stroke()
+
+            rad+=2;
+        }
+        //if(ball == start || ball == end) rad -= 3
+       
+    });
+
+    
+
+
+
+
+}
+
+setInterval(draw, 10)
+
+colorblind = false;
+function side(ball) {
+    for(var i = 0; i<path.length; i++){
+        if(path[i].o == ball) return path[i].cw;
+    }
+    ov = 0;
+    un = 0;
+    for(var i = 0; i<path.length-1; i++){
+        if((path[i].o.x < ball.x != path[i+1].o.x < ball.x) && clockwise(path[i].o.x, path[i].o.y, path[i+1].o.x, path[i+1].o.y, ball.x, ball.y)){
+            ov++;
+        }else{
+            un++;
+        }
+    }
+    return !(ov%2) 
+}
+
+
+function win(){
+    ctx.drawImage(complete, 0, 0, 300, 200);
+    drawmore = false;
+}
+
+window.onwheel = e => {
+    if(e.deltaY < 0){
+        camerazoom += .1;
+    }else{
+        camerazoom -= .1;
+    }
+    if(camerazoom < .2){
+        camerazoom = .2;
+    }
+    if(camerazoom > 5){
+        camerazoom = 5;
+    }
+        draw();
+
+}
+
+
+pathstarted = false;
+
+function moveto(nw){
+    ok = true;
+    
+    savestate = structuredClone([path, balls, start, end]);
+
+    for(var i=0; i<path.length-2; i++){
+            a = path[i].o;
+            b = path[i+1].o;
+            c = path[path.length-1].o;
+            d = nw;
+            if(crossing(a.x, a.y, b.x, b.y, c.x, c.y, d.x, d.y)) ok = false;
+        
+    }
+
+    for(var i=0; i<lines.length; i++){
+            a = lines[i]
+            c = path[path.length-1].o;
+            d = nw;
+            if(crossing(a.x1, a.y1, a.x2, a.y2, c.x, c.y, d.x, d.y)) ok = false;
+        
+    }
+
+    didone = false;
+    balls.forEach(ball => {
+        if(didone) return;
+        if(ball == path[path.length-2].o) return;
+        if(inside(ball.x, ball.y, path[path.length-2].o.x, path[path.length-2].o.y, path[path.length-1].o.x, path[path.length-1].o.y, nw.x, nw.y)){
+
+            path[path.length-1] = {o:ball, cw: clockwise(ball.x, ball.y, path[path.length-2].o.x, path[path.length-2].o.y, nw.x, nw.y)}
+            path.push({o: nw})
+            didone = true;
+
+        }
+    });
+
+    
+
+    path[path.length-1] =  {o: nw}
+
+
+    if(path.length >= 3 && path[path.length-2].cw != clockwise(path[path.length-2].o.x, path[path.length-2].o.y, path[path.length-3].o.x, path[path.length-3].o.y, nw.x, nw.y)){
+        path.splice(path.length-2, 1);
+    }
+
+
+    balls.forEach(ball => {
+        if(distance(ball.x, ball.y, nw.x, nw.y) < rad+2) ok = false;
+    })
+
+
+    for(var i=0; i<path.length-1; i++){
+        for(var j=i; j<path.length-1; j++){
+            a = path[i].o;
+            b = path[i+1].o;
+            c = path[j].o;
+            d = path[j+1].o;
+            if(a == c || a == d || b == c || b == d) continue;
+            if(crossing(a.x, a.y, b.x, b.y, c.x, c.y, d.x, d.y)) {
+                ok = false;
+            }
+        }
+    }
+
+    for(var i=0; i<path.length-1; i++){
+        for(var j=0; j<lines.length; j++){
+            a = path[i].o;
+            b = path[i+1].o;
+            c = lines[j];
+            if(a.x == c.x1 && a.y == c.y1) continue;
+            if(a.x == c.x2 && a.y == c.y2) continue;
+            if(b.x == c.x1 && b.y == c.y1) continue;
+            if(b.x == c.x2 && b.y == c.y2) continue;
+            if(crossing(a.x, a.y, b.x, b.y, c.x1, c.y1, c.x2, c.y2)) {
+                ok = false;
+            }
+        }
+    }
+
+
+    if(!ok){
+        [path, balls, start, end] = structuredClone(savestate);
+    }
+
+    //path[path.length-1] =  {o: nw}
+}
+
+won = false;
+
+canvas.onmousemove = e => {
+    if(mousedown){
+        camera[0] += (e.offsetX - mousedown[0])/camerazoom;
+        camera[1] += (e.offsetY - mousedown[1])/camerazoom;
+            mousedown = [e.offsetX, e.offsetY]
+
+    }else{
+        if(!pathstarted){
+            if(distance(start.x, start.y, e.offsetX, e.offsetY) < 15){
+                                if(won) return;
+
+                pathstarted = true;
+                path = []
+                path[0] = {o: start}
+                path[1] = {o: {x: e.offsetX, y: e.offsetY}}
+            }
+             
+        }else{
+            if(distance(end.x, end.y, e.offsetX, e.offsetY) < 5){
+                pathstarted = false;
+                //checkvalid
+                path[path.length-1] = {o: end}
+            }
+            moveto({x: e.offsetX, y: e.offsetY})
+            draw(true);
+        }
+    }
+    draw();
+}
+
+canvas.onmousedown = e => {
+ 
+    mousedown = [e.offsetX, e.offsetY];
+    pathstarted = false;
+    path = []
+    draw()
+}
+
+window.onmouseup = e => {
+    mousedown = false;
+}
+
+window.onkeydown = e => {
+    if(e.key == 'C' || e.key == 'c') {
+        colorblind = !colorblind;
+        draw();
+    }
+    
+}
+
+draw();
+
+ 
+
+
+</script>
+</html>
