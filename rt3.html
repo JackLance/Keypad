@@ -118,6 +118,19 @@ riddles = [
 {x: 2400, y: -150, name: "magic", code: magic},
 
 {x: 2400, y: 400, name: "divide1", code: divide1},
+{x: 2500, y: 300, name: "divide2", code: divide1},
+{x: 2600, y: 300, name: "divide3", code: divide1},
+{x: 2700, y: 300, name: "divide4", code: divide1},
+{x: 2500, y: 400, name: "divide5", code: divide1},
+{x: 2600, y: 400, name: "divide6", code: divide1},
+{x: 2700, y: 400, name: "divide7", code: divide1},
+{x: 2500, y: 500, name: "divide8", code: divide1},
+{x: 2600, y: 500, name: "divide9", code: divide1},
+{x: 2700, y: 500, name: "divide10", code: divide1},
+{x: 2800, y: 300, name: "divide11", code: divide1},
+{x: 2800, y: 400, name: "divide12", code: divide1},
+{x: 2800, y: 500, name: "divide13", code: divide1},
+{x: 2900, y: 400, name: "divide14", code: divide1},
 
 ]
 
@@ -181,8 +194,24 @@ connections = [
 
 ["nexus6", "divide1"],
 ["group7", "divide1"],
-
-
+["divide1", "divide2"],
+["divide1", "divide5"],
+["divide1", "divide8"],
+["divide2", "divide3"],
+["divide3", "divide4"],
+["divide5", "divide6"],
+["divide6", "divide7"],
+["divide8", "divide9"],
+["divide9", "divide10"],
+["divide4", "divide12"],
+["divide10", "divide12"],
+["divide4", "divide13"],
+["divide7", "divide13"],
+["divide7", "divide11"],
+["divide10", "divide11"],
+["divide11", "divide14"],
+["divide12", "divide14"],
+["divide13", "divide14"],
 ]
 
 distance = (a, b, c, d) => {return Math.sqrt((a-c)*(a-c) + (b-d)*(b-d))};
