@@ -1858,7 +1858,7 @@ draw();
         ctx.fillStyle = "#000000";
         ctx.fillRect(camzoom*50, camzoom*100, camzoom*1100, camzoom*5);
         ctx.fillRect(camzoom*398, camzoom*100, camzoom*5, camzoom*500 * a);
-    ctx.font = "bold "+camzoom*50+"px monospace";
+    ctx.font = "bold "+camzoom*40+"px monospace";
 
     if(checkwin()) win();
 
@@ -1875,7 +1875,7 @@ draw();
             ctx.fillText("• " + col[i][0], camzoom*450, camzoom*i*500 + camzoom*375 - camzoom*scroll1)
         }else{
             ctx.drawImage(imgs[col[i][0]], camzoom*500, camzoom*i*500 + camzoom*175 - camzoom*scroll1 - camzoom * 63, 450 * camzoom, 450 * camzoom)
-            ctx.fillText("•                     /26", camzoom*450, camzoom*i*500 + camzoom*375 - camzoom*scroll1)
+            ctx.fillText("•", camzoom*450, camzoom*i*500 + camzoom*375 - camzoom*scroll1)
         }
         
         
@@ -1888,6 +1888,7 @@ draw();
 
     ctx.fillRect(0, 0, camzoom*1200, camzoom*100);
           ctx.fillStyle = "#000000";
+    ctx.font = "bold "+camzoom*50+"px monospace";
 
         ctx.fillText("Guess", camzoom*50, camzoom*75)
     ctx.fillText("# Criteria matched", camzoom*600, camzoom*75)

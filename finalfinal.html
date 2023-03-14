@@ -122,7 +122,7 @@ drawmore = true;
         ctx.fillStyle = "#000000";
         ctx.fillRect(camzoom*50, camzoom*100, camzoom*1100, camzoom*5);
         ctx.fillRect(camzoom*398, camzoom*100, camzoom*5, camzoom*500 * a);
-    ctx.font = "bold "+camzoom*50+"px monospace";
+    ctx.font = "bold "+camzoom*30+"px monospace";
 
     if(checkwin()) win();
 
@@ -139,7 +139,7 @@ drawmore = true;
             ctx.fillText("• " + col[i][0], camzoom*450, camzoom*i*500 + camzoom*375 - camzoom*scroll1)
         }else{
             ctx.drawImage(imgs[col[i][0]], camzoom*500, camzoom*i*500 + camzoom*175 - camzoom*scroll1 - camzoom * 63, 450 * camzoom, 450 * camzoom)
-            ctx.fillText("•                     /26", camzoom*450, camzoom*i*500 + camzoom*375 - camzoom*scroll1)
+            ctx.fillText("•   ", camzoom*450, camzoom*i*500 + camzoom*375 - camzoom*scroll1)
         }
         
         
@@ -149,6 +149,7 @@ drawmore = true;
     }
 
      ctx.fillStyle = "#bbeeee";
+    ctx.font = "bold "+camzoom*50+"px monospace";
 
     ctx.fillRect(0, 0, camzoom*1200, camzoom*100);
           ctx.fillStyle = "#000000";
