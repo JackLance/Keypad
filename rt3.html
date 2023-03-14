@@ -1,12 +1,21 @@
 <!doctype html>
 <html lang="en" style = "margin:0">
-<body style = "">
+
+<body style="border:0px; padding:0px; margin:0px">
+    <div class="image" id="completed" style="border:0px; padding:0px; display:none">
+  <div class="overlay" style="height:100%; width:100%; position:fixed">
+      
+      <img id="completedpng" src = "completed.png" style=" width:100%"></img>
+  </div>
+</div>
+<div >
     <div style = "">
         <div id = "main" style = "width:  78%;">
 
             Hello and welcome to rt 3 search
         </div>
 <canvas id="gameCanvas"></canvas>
+</div>
 </div>
 </body>
 <br> <br> 
@@ -79,6 +88,79 @@ input:not([type='checkbox']) {
 }
     </style>
 <script>
+
+    /*
+
+
+
+
+    Hi there!
+
+
+
+
+    If you haven't done the riddle search, you probably shouldn't be here. A lot of the solutions are written below without any obfuscation, looking at the source-code will make them trivial and not-any-fun. 
+
+
+    If you've done the riddle search already, feel free to look at my code, but I'll warn you there's a lot of trash ridiculously bad code, and your time will probably be better spent asking me whatever question you have.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    */
 
 canvas = document.getElementById ('gameCanvas' );
 button = document.getElementById ('ret' );
@@ -284,8 +366,8 @@ function save(){
 }
 
 function load(){
-    return false;
     if(!localStorage.getItem('data')) return false;
+    firstvisit = false;
     [riddles, ridd, intermission] = JSON.parse(localStorage.getItem('data'));
     riddlesbyname = {}
     rnb = {}
@@ -375,8 +457,8 @@ function maindraw(checkfinal){
     ctx.setLineDash([]);
 }
 
-mapcamerazoom = 1;
-mapcamera = [0,0]
+mapcamerazoom = 0.8;
+mapcamera = [-68,-445]
 mapmousedown = false;
 firstvisit = true;
 current = "";
@@ -388,7 +470,7 @@ function returntomap(){
     ret.innerHTML = `Return to map`
     div.innerHTML = `
     &nbsp;&nbsp;&nbsp;&nbsp;This is the riddle map, which will update with your status as you make progress. <br>
-    &nbsp;&nbsp;&nbsp;&nbsp;You can drag the map around with the mouse, and zoom in and out with the mousewheel, or by pressing control and plus or minus. <br>
+    &nbsp;&nbsp;&nbsp;&nbsp;You can drag the map around with the mouse, and zoom in and out with the mousewheel.<br>
     &nbsp;&nbsp;&nbsp;&nbsp; Press S while on the map screen to get a code you can use to share progress with a team member, and L while on the map screen to receive a team member's progress.
     `
     if(firstvisit){
@@ -427,7 +509,7 @@ function returntomap(){
         clicky = (e.offsetY / mapcamerazoom) + mapcamera[1];
         riddles.forEach(riddle => { 
             if(riddle.name[riddle.name.length-1] == 'X') return;
-            //if(!riddle.unlocked) return;
+            if(!riddle.unlocked) return;
             if(distance(clickx, clicky, riddle.x, riddle.y) < 27){
                 ret.style.display = "block";
                 current = riddle.name;
@@ -708,7 +790,8 @@ riddles.forEach(riddle => {riddlesbyname[riddle.name] = riddle})
         
     }
 
-    window.onwheel = e => {
+    canvas.onwheel = e => {
+        e.preventDefault();
         if(e.deltaY < 0){
             mapcamerazoom += .1;
         }else{
@@ -760,8 +843,11 @@ function resize(){
 
 setInterval(() => {draw()}, 100)
 resize()
-if(!load()) finalfinal();
+if(!load()) intro0();
 window.addEventListener('resize', resize);
+
+f1 = (i) => {setTimeout( () => {document.getElementById('completedpng').style.opacity = i/100;}, 5*i)}
+f2 = (i) => {setTimeout( () => {document.getElementById('completedpng').style.opacity = 1-i/100;}, 1500+5*i)}
 
 function complete(){
     riddle = current;
@@ -773,7 +859,18 @@ function complete(){
             riddlesbyname[conn[1]].unlocked = true;
         }
     })
-    returntomap();
+
+    document.getElementById('completed').style.display = '';
+    document.getElementById('completedpng').style.opacity = 0
+    for(i = 0; i<100; i++){
+        f1(i);
+    }
+    setTimeout( () => {returntomap()}, 1000);
+    for(i = 0; i<100; i++){
+        f2(i);
+    }
+    setTimeout( () => {document.getElementById('completed').style.display = 'none';}, 2000);
+    //returntomap();
 
     if(riddle == "nexus2" || riddle == "nexus3" || riddle == "group2" || riddle == "group5"){
         if(!ridd[4].completed) intermissiontime();
@@ -1286,7 +1383,8 @@ function final3(){
     camera = [250,140]
     mousedown = false;
 
-    window.onwheel = e => {
+    canvas.onwheel = e => {
+        e.preventDefault();
         if(e.deltaY < 0){
             camerazoom += .1;
         }else{
@@ -1923,7 +2021,8 @@ canvas.onmouseup = e=>{
      
 }
 
-window.onwheel = e => {
+canvas.onwheel = e => {
+        e.preventDefault();
     if(e.deltaY/camzoom > 0){
 
          col = []
@@ -1963,7 +2062,7 @@ function int1(){
      <br>&nbsp;&nbsp; • It is allowed to be more than one word (e.g. "what to feed my dog" & "what to feed my cat")
      <br>&nbsp;&nbsp; • You don't have to use Google, you can use your favorite search engine as long as it shows the number of results for your query.
      <br>&nbsp;&nbsp; • I wrote the words "a million" and "a hundred thousand" out in words to bring attention to the fact that they are different numbers with different amount of zeros, because otherwise it was missable, and am writing this bullet point for the same purpose.
-     <br>&nbsp;&nbsp; • <b> This puzzle has manual verification, which is to say you have to go search your phrases to confirm that it works. When you have something that works, you can type it below:</b>
+     <br>&nbsp;&nbsp; • <b> This riddle has manual verification, which is to say you have to go search your phrases to confirm that it works. When you have something that works, you can type it below:</b>
      <br><br>
      <input onchange = "func(this.value)">
      <br><br>
@@ -2092,13 +2191,13 @@ function int5(){
 function intro0(){
     div.innerHTML = `
      <br><br><b><div style="font-size:30px">Welcome to the first Root Three Riddle Search!</div></b> <br> <br> &nbsp;&nbsp;&nbsp;&nbsp;
-    If you missed the announcement, the reason this search is being held today is that rt(3) ≈ 1.73, and today is January 73rd, (counting February 1st as January 32nd, February 2nd as January 33rd, and so on.) Coincidentally, '23 is a pretty nice year for this, as the square root of three can technically be written as ²√3. Using the above logic, Rt(3) Day falls on March 14th, or March 13th on leap years. Surprisingly, "thirteenth" and "fourteenth" both contain "rt", and March is month 3 of the year, so it's a very suitable time to celebrate rt(3). :) <br><br> &nbsp;&nbsp;&nbsp;&nbsp;
-        √3 is a constant generally associated with equilateral triangles, so if you want to celebrate rt(3) day, you could have some Doritos, hamentash, or a Toblerone. In fact, some places, like 7-11 and Blaze, even have pizza sales for rt(3) day, because a slice of pizza can look a lot like an equilateral triangle. Or you could just have root beer, rutabega, and other root vegetables. I think it should be a national holiday, but I know that's a pretty <i> radical </i> idea (you could call me a three-thinker.) If I had wanted to use more decimal places, rt(3) ≈ 1.732051, so I would have had to wait until 1/73/2051, about thirty years from now, before running this riddle search. But I didn't want 2cos(30) years is a pretty long time.<br><br><br><br> &nbsp;&nbsp;&nbsp;&nbsp;
+    If you missed the announcement, the reason this search is being held today is that rt(3) ≈ 1.73, and today is January 73rd, (counting February 1st as January 32nd, February 2nd as January 33rd, and so on.) Coincidentally, '23 is a pretty nice year for this, as the square root of three can technically be written as ²√3. Using the above logic, rt(3) Day falls on March 14th, or March 13th on leap years. Surprisingly, "thirteenth" and "fourteenth" both contain "rt", and March is month 3 of the year, so it's a very suitable time to celebrate rt(3). :) <br><br> &nbsp;&nbsp;&nbsp;&nbsp;
+        √3 is a constant generally associated with equilateral triangles, so if you want to celebrate rt(3) day, you could have some Doritos, hamentash, or a Toblerone. In fact, a lot of places, like 7-11 and Blaze, have sales on pizza for rt(3) day, because a slice of pizza can look a lot like an equilateral triangle. Alternatively, you could also celebrate with root beer, rutabega, and other root vegetables. Personally, I think it should be a national holiday, but I know that's a pretty <i> radical </i> idea (you could call me a three-thinker.) If I had wanted to use more decimal places, rt(3) ≈ 1.732051, so I would have had to wait until 1/73/2051, about thirty years from now, before running this riddle search. But I didn't want 2cos(30) years is a pretty long time.<br><br><br><br> &nbsp;&nbsp;&nbsp;&nbsp;
         I think riddle searching can be a pretty hard hobby to get into, especially because for so many people, the first one they get exposed to is the annual Harvard Riddle Search. It can be intimidating and opaque for newer searchers, as the rules and conventions aren't documented anywhere. I decided to make this as an introduction for anyone who hasn't done a riddle search before, in order to explain what to expect from other riddle searches without assuming prior knowledge.<br><br>&nbsp;&nbsp;&nbsp;&nbsp;
         This riddle search is intended to be completed by one or two people, rather than a big team. If you work with more than one person, you'll have to sync your progress manually by sending each other codes from the map screen. The site has been checked in Chrome and Firefox, and probably won't work on mobile. Also, one rule before getting started:
             <div class="rule"><b>You are not allowed to the view the source-code for any of the riddles in this search.</b></div>
 
-        &nbsp;&nbsp;&nbsp;&nbsp;(You may be wondering what there is to prevent you from just breaking the rule. While it's true that there's no way I can enforce this, you can think of it as a sudoku in a newspaper. There's technically nothing preventing you from plugging it into an online solver and copying down the solution, but you haven't really done the sudoku in that case, you just copied some numbers. To truly do this riddle search, you'll have to obey any rules in red boxes like the one above.)<br> &nbsp;&nbsp;&nbsp;&nbsp;
+        &nbsp;&nbsp;&nbsp;&nbsp;(You may be wondering what there is to prevent you from breaking the rule. While it's true that there's no way I can enforce this, you can think of it as a sudoku in a newspaper. There's technically nothing preventing you from plugging it into an online solver and copying down the solution, but you haven't really <i>done</i> the sudoku in that case, you just copied some numbers. To truly do this riddle search, you'll have to obey the rules in red boxes like the one above.)<br> &nbsp;&nbsp;&nbsp;&nbsp;
          To start, click on "Go to map" below.
          <br> &nbsp;&nbsp;&nbsp;&nbsp;
     
@@ -2110,10 +2209,10 @@ function intro0(){
 
 function intro1(){
     div.innerHTML = `
-     <br><br>&nbsp;&nbsp;&nbsp;&nbsp;So, what exactly are riddles? You may be familiar with the word "riddle" to mean just those Sphynx-like word riddles, but to riddle enthusiasts, "riddle" means so much more than that. It's hard to exactly define because there's so many types of riddles, but very generally, a riddle is something with an objective, and the fun derives from understanding what the objective is, or understanding how to achieve the objective. If it sounds like that encompasses a lot, that's because it does! A riddle can be anything, from whodunits, to matchstick riddles, to riddles which don't even look like anything recognizable.  <br><br>&nbsp;&nbsp;&nbsp;&nbsp;
+     <br><br>&nbsp;&nbsp;&nbsp;&nbsp;So, what exactly are riddles? You may be familiar with the word "riddle" to mean those Sphynx-like word riddles, but to riddle enthusiasts, "riddle" means much more. It's hard to define precisely because there's so many types of riddles, but very generally, a riddle is something with an objective, and the fun derives from understanding what the objective is, or understanding how to achieve the objective, or both. If it sounds like that definition encompasses a lot, that's because it does! A riddle can be anything, from whodunits, to matchstick riddles, to riddles which don't even look like anything recognizable.  <br><br>&nbsp;&nbsp;&nbsp;&nbsp;
     For this riddle, look at the image below, and then type the code in the box below once you think you know it. You'll be told when you've got it right, and will be allowed to move on to the next riddle. <br> <br>
     <img src = "intro1.png" > 
-    <input onchange = "check(this.value)"> </input>
+    <input onchange = "check(this.value); this.value=''"> </input>
     `
 
     check = (val) => {
@@ -2131,14 +2230,14 @@ function intro1(){
 function intro2(){
     div.innerHTML = `
     <br><br>&nbsp;&nbsp;&nbsp;&nbsp;
-    A riddle search is divided into several riddle-sequences, also just called sequences. A sequence comprises of any amount of riddles connected in some way. Like the explanation of what a riddle is, it's hard to pin down exactly what a riddle is, but generally a sequence has some idea in common throughout, the first riddle in the sequence introduces the concept, and then it gets iterated on and develops in various ways.<br>&nbsp;&nbsp;&nbsp;&nbsp;
+    A riddle search is divided into several riddle-sequences, also just called sequences. A sequence comprises of any amount of riddles connected in some way. Like the explanation of what a riddle is, it's hard to pin down exactly what counts as "connected", but generally a sequence has some idea in common throughout, the first riddle in the sequence introduces the concept, and then it gets iterated on and develops in various ways.<br>&nbsp;&nbsp;&nbsp;&nbsp;
     The riddles within a sequence can be completed independently. By that, I mean to say that you won't need information from one riddle to complete another, and once you're finished with a riddle, you won't need anything from it. (So for instance, you don't need to keep the code to the previous riddle now that you've completed it, as no other riddle will need it.) <br><br>&nbsp;&nbsp;&nbsp;
     There should be an embedded video below, if it's not showing up, you can also watch <a href = "https://www.youtube.com/watch?v=Pt6ICemT2Vs"> here</a>.
     <br><br>
     <iframe 
     src="https://www.youtube.com/embed/Pt6ICemT2Vs">
     </iframe><br>
-    <input onchange = "check(this.value)"> </input>
+    <input onchange = "check(this.value); this.value=''"> </input>
     `
 
     check = (val) => {
@@ -2154,9 +2253,9 @@ function intro2(){
 function intro3(){
     div.innerHTML = `
     <br><br>&nbsp;&nbsp;&nbsp;&nbsp;
-    The sequence just branched on the map, so you have multiple riddles unlocked on the map at once. Every riddle page has a "Return to map" button so if you get stuck you can try another riddle you have access to. Because of the branching structure, you won't need to complete every riddle to finish the search. <br>
+    The sequence just branched on the map, so there are multiple riddles that you can access. Every riddle page has a "Return to map" button so if you get stuck you can try another riddle you have access to. Because of the branching structure, you won't need to complete every riddle to finish the search. <br>
     <img src = "intro3.gif" > 
-    <input onchange = "check(this.value)"> </input>
+    <input onchange = "check(this.value); this.value=''"> </input>
     `
 
     check = (val) => {
@@ -2173,12 +2272,12 @@ function intro4(){
     div.innerHTML = `
     
     <br><br>&nbsp;&nbsp;&nbsp;&nbsp;
-    The sequence just branched on the map, so you have multiple riddles unlocked on the map at once. Every riddle page has a "Return to map" button so if you get stuck you can try another riddle you have access to. Because of the branching structure, you won't need to complete every riddle to finish the search. <br>
-    There should be an embedded video below, if it's not showing up, you can also watch <a href = "https://www.youtube.com/watch?v=g9SqswHhO6Y"> here</a>.
+    The sequence just branched on the map, so there are multiple riddles that you can access. Every riddle page has a "Return to map" button so if you get stuck you can try another riddle you have access to. Because of the branching structure, you won't need to complete every riddle to finish the search. <br>
+    There should be an embedded video below, if it's not showing up, you can also watch <a href = "https://www.youtube.com/watch?v=g9SqswHhO6Y"> here</a>.<br><br>
     <iframe 
     src="https://www.youtube.com/embed/g9SqswHhO6Y">
-    </iframe><br>
-    <input onchange = "check(this.value)"> </input>
+    </iframe>
+    <input onchange = "check(this.value); this.value=''"> </input>
     `
 
     check = (val) => {
@@ -2196,7 +2295,7 @@ function intro5(){
     <br><br>&nbsp;&nbsp;&nbsp;&nbsp;Sequences usually end with a "finale riddle". There are a few ways of doing a finale riddle, but it often subverts some expectation or breaks some rule that has been established in the sequence. Sometimes, it takes the concept one step further in some way, or sometimes it uses the same logic, but requires a new perspective to complete. It's good to stay aware of when you're on the last riddle of a sequence so you can be a little more on-your-toes for gimmicks. A finale riddle may be the hardest one of the sequence, but it doesn't necessarily have to be bigger or more difficult than the rest of the sequence. Sometimes it's just a silly little trick, or showing off an interesting consequence of established rules, or providing closure to the sequence in some other way. 
     
     <img src = "intro5.png" > 
-    <input onchange = "check(this.value)"> </input>
+    <input onchange = "check(this.value); this.value=''"> </input>
     `
 
     check = (val) => {
@@ -2210,24 +2309,41 @@ function intro5(){
 }
 
 function introb1() {
-    //chinese bonus
+    div.innerHTML = `
+    <br><br>&nbsp;&nbsp;&nbsp;&nbsp;<b> This is a bonus riddle, it is completely optional, and does not unlock anything nor count towards your overall completion </b>
+    <br><br>&nbsp;&nbsp;&nbsp;&nbsp; Bonus riddles are optional challenges that often times are a little harder, more experimental, or just require doing something that would be fun for some people, but not others. For example, you'll probably quickly see why this riddle was made optional. Not only is it much harder than the previous, but it also requires knowledge that not everybody has. It still may be fun, but it's just for fun.
+    
+    If you can't see the embedded video, you can watch it <a href = "https://www.youtube.com/watch?v=PCGOqTdZfFo"> here</a>.<br>
+    (You should input the code in Chinese characters)<br>
+    <iframe 
+    src="https://www.youtube.com/embed/PCGOqTdZfFo">
+    </iframe><br>
+    <input onchange = "check(this.value); this.value=''"> </input>
+    `
+
+    check = (val) => {
+        if(val.toLowerCase() == "非常难" ){
+            complete("")
+
+        }
+    }
+
 
 }
 
 function introb2() {
     div.innerHTML = `
-    
     <br><br>&nbsp;&nbsp;&nbsp;&nbsp;
-    There's no exact rule about what counts as "iterating on an idea". Often times, iteration can mean adding elements, removing elements, taking an idea to an extreme, having the same mechanics with a different objective, having different mechanics with the same objective, applying a new perspective, reversing elements, and so on. Basically, changing things in any way that's interesting. The previous riddle was about deducing visuals based on sound, so this riddle iterates on that by now deducing sound based on visuals. When you do enough riddle searches, you can start to gain a good intuition of what iterating often means. The reason this is helpful is because you can start to predict what riddles will occur in a sequence before you even get to them!    <br><br>
-    If you can't see the embedded video, you can watch it <a href = "https://www.youtube.com/watch?v=jvCyDDtRKJU"> here</a>.
+    It might not be obvious what "iterating on an idea" means. Often times, iteration can mean adding elements, removing elements, taking an idea to an extreme, having the same mechanics with a different objective, having different mechanics with the same objective, applying a new perspective, reversing elements, or so on. Basically, changing things in any way that's interesting. The previous riddle was about deducing visuals based on sound, so this riddle iterates on that by having you deduce sound based on visuals. When you do enough riddle searches, you can start to gain a good intuition of what iterating often means. The reason this is helpful is because you can start to predict what riddles will occur in a sequence before you even get to them, and then be mentally prepared for if those riddles do appear!    <br><br>
+    If you can't see the embedded video, you can watch it <a href = "https://www.youtube.com/watch?v=jvCyDDtRKJU"> here</a>.<br>
     <iframe 
     src="https://www.youtube.com/embed/jvCyDDtRKJU">
     </iframe><br>
-    <input onchange = "check(this.value)"> </input>
+    <input onchange = "check(this.value); this.value=''"> </input>
     `
 
     check = (val) => {
-        if(val.toLowerCase() == "soft spoken" || val.toLowerCase() == "softspokenn"){
+        if(val.toLowerCase() == "soft spoken" || val.toLowerCase() == "softspoken"){
             complete("")
 
         }
@@ -3268,9 +3384,9 @@ pieces[9].img.src = "jig40.png";
 }
 
 function qr1 () {
-    div.innerHTML = `<br><br>&nbsp;&nbsp;&nbsp;&nbsp;The rule in the introduction that you can't view the source code is one example of what's usually called a "restriction". Riddles are often about overcoming obstacles to complete objectives, so restrictions are one way of creating those obstacles. Common restrictions include "You may not use a program to solve this riddle", "You may not use any dictionary search tools (such as Onelook or Nutrimatic) to solve this riddle", and "You may not use reverse image search to solve this riddle". Restrictions are helpful to be able to make interesting riddles, as some ideas that would be fun to complete normally would be trivialized if you were allowed to write a program to complete them. Sometimes this can be overcome by, for instance, putting a watermark on an image to make it so it can't be reverse-image-searched, but it's easier and more elegant for the riddle creator to just add a restriction preventing that.
+    div.innerHTML = `<br><br>&nbsp;&nbsp;&nbsp;&nbsp;The rule in the introduction that you can't view the source code is one example of what's usually called a "restriction". Riddles are often about overcoming obstacles to complete objectives, so restrictions are one way of creating those obstacles. Common restrictions include "You may not use a program to complete this riddle", "You may not use any dictionary search tools (such as Onelook or Nutrimatic) to complete this riddle", and "You may not use reverse image search to complete this riddle". Restrictions are helpful to be able to make interesting riddles, as some ideas that would be fun to complete normally would be trivialized if you were allowed to write a program to complete them. Sometimes this can be overcome by, for instance, putting a watermark on an image to make it so it can't be reverse-image-searched, but it's easier and more elegant for the riddle creator to just add a restriction preventing that.
         <br><br>&nbsp;&nbsp;&nbsp;&nbsp;There will never be an obfuscated restriction. Any restriction a riddle has will always be obviously separated from the plot, and explicitly marked as a restriction. Often times, they are marked with red boxes. Other than that, there's basically no restriction on what a restriction can be, anything that makes a riddle more interesting is allowed. Some memorable restrictions from past riddles searches include "You may not type or write anything down while completing this riddle", "One team member may view document A but not document B, and the other may view document B but not document A", and "You must keep the provided electric shock device on at all times while completing this riddle"  
-        <br><br>&nbsp;&nbsp;&nbsp;&nbsp; For this sequence, the goal of each riddle is to scan a QR code, which will give a 6 digit code to enter here as confirmation you completed it. I found that apps specifically for QR scanning such as <a href = "https://apps.apple.com/us/app/qr-reader-for-iphone/id368494609">this one for iphone</a> or <a href = "https://play.google.com/store/apps/details?id=com.gamma.scan">this one for android</a> worked better than my phone's built-in qr scanning. Each of the riddles has to be printed, but for convenience I've put them all in one pdf so you don't have to print 9 separate pages. The riddles are completely independent though, you won't need any part of one while solving another.
+        <br><br>&nbsp;&nbsp;&nbsp;&nbsp; For this sequence, the goal of each riddle is to scan a QR code, which will give a 6 digit code to enter here as confirmation you completed it. I found that apps specifically for QR scanning such as <a href = "https://apps.apple.com/us/app/qr-reader-for-iphone/id368494609">this one for iphone</a> or <a href = "https://play.google.com/store/apps/details?id=com.gamma.scan">this one for android</a> worked better than my phone's built-in qr scanning. Each of the riddles has to be printed, but for convenience I've put them all in one pdf so you don't have to print 9 separate pages. The riddles are completely independent though, you won't need any part of one while completing another.
         <br><br>&nbsp;&nbsp;&nbsp;&nbsp;The following restrictions apply:
                 <div class="rule"><b> • You may only print one copy, and aren't allowed to reproduce any part of them in any way, such as making additional copies, using black & white legos (or other dark/light objects) to recreate the pattern, draw the pattern out on graph paper, or use any sort of image editor. You are allowed to use other household objects, such as a mirror or scissors, for instance. (Obviously, if you destroy or lose your original copy, then you can make another copy!)<br>
                 • You have to scan the QR code to complete each riddle, you can't just reverse the encoding.
@@ -4786,7 +4902,8 @@ canvas.onmouseup = e=>{
      selected = null;
 }
 
-window.onwheel = e => {
+canvas.onwheel = e => {
+        e.preventDefault();
     if(e.deltaY > 0){
         if(col1.length >= 12 && e.offsetX/ camzoom < 600 && e.offsetY/ camzoom > 450){
             scroll1 += 25;
@@ -5015,7 +5132,8 @@ canvas.onmouseup = e=>{
      
 }
 
-window.onwheel = e => {
+canvas.onwheel = e => {
+        e.preventDefault();
     if(e.deltaY/camzoom > 0){
 
          col = []
@@ -5259,7 +5377,22 @@ canvas.onmousemove = e => {
 }
 
 function nexus1 () {
+div.innerHTML = `
+<br>&nbsp;&nbsp;&nbsp;&nbsp;If you're here, it's probably because you're interested in riddles and riddle-like things, so it's likely you already know or at least have heard about letter webs. In case you haven't, here's a quick description of how they work, feel free to skip this if you're already familiar with letter webs:<br><br>
+• There are various lines of bubbles, you can click on a line of bubbles to view the hint for that line.<br>
+• The goal of the riddle is to fill each bubble with one letter, to make the line fit the hint.<br>
+• Every bubble is connected to another bubble, when you fill a letter into one bubble, the bubble it is connected to will automatically change to the same letter.<br>
+• The riddle is completed when every bubble is filled in with the correct letter, so every line matches its hint.<br><br>
 
+<br>&nbsp;&nbsp;&nbsp;&nbsp;This letter web has a similar interface to the map, you can drag it around with the mouse or zoom in and out with the scroll wheel.<br>
+Also, the following restrictions apply: 
+<div class="rule"><b>• You are not allowed to use online word-lookup tools (such as Nutrimatic or Onelook).<br>
+• You are not allowed to use Google or other search engines</b></div>
+
+<br>&nbsp;&nbsp;&nbsp;&nbsp;You may be worried about the rules about not being able to search things. The riddle is intended to be possible with mostly common knowledge, though sometimes it may require a little lateral thinking. If you feel hopelessly stuck, remember you can always ask people you know for help! (or just go through the other route on the riddle map.)<br>  
+
+<br>&nbsp;&nbsp;&nbsp;&nbsp;This is a plain-stock letter web, which means that there's no gimmick or connection between the entries. There's a slight pattern, with a ring of 7 small entries in the center, 7 medium entries around that, and 7 large entries around that, but it's not really important to the riddle. If you're just familiar with plain-stocks, you'd probably be surprised at how common letter webs are in searches. I feel like I had to mention them, because it seems like you can't do a full riddle search without seeing at least one letter web. I'll talk more about the use of letter webs in the other riddles in this sequence.
+  `
 rad = 10;
 words = [
 {ang: 1, x: 100*Math.cos(0.9)+40, y:100*Math.sin(0.9), ans: "seesaw", clue: "Object designed for exactly two people to sit on and move in opposite directions."}, 
@@ -5403,6 +5536,9 @@ draw = () => {
         if(word == selected.w){
             ctx.strokeStyle = "#008800"
         }
+        if(letter == selected.p){
+            ctx.strokeStyle = "#ff8888"
+        }
         if(letter == selected){
             ctx.strokeStyle = "#ff0000"
         }
@@ -5532,7 +5668,8 @@ camerazoom = 0.7;
 camera = [109,176]
 mousedown = false;
 
-window.onwheel = e => {
+canvas.onwheel = e => {
+        e.preventDefault();
     if(e.deltaY > 0){
         camerazoom -= .1;
     }else{
@@ -5572,44 +5709,60 @@ window.onmouseup = e => {
 
 }
 function nexus2 () {
+div.innerHTML = `
+<br>&nbsp;&nbsp;&nbsp;&nbsp;One reason letter webs are often favored is that they are fairly unconstrained. The previous riddle was plain-stock, but you can have riddles that are all the way up to full-stock, meaning that every single hint has some relationship to the topic or the gimmick of that riddle. Some types of word riddles, like wordboats for instance, the riddle creator only gets to pick some words, and other words are pretty much forced.<br>
+<br>&nbsp;&nbsp;&nbsp;&nbsp;It's good to keep in mind this as the person completing the riddle, because if you see that <i>most</i> of the hints in a letter web follow some common theme, but there are a few suspicious ones, you can be sure that the creator could have avoided the suspicious ones if they weren't needed for the riddle, so they must be relevant somehow. 
+<br>&nbsp;&nbsp;&nbsp;&nbsp; By the way, some bubbles can be in trios rather than pairs, just because sometimes there's an odd amount of a letter. Some letter web purists think that a good creator should always choose words such that every letter appears an even amount of times, but I don't see a reason to make things harder than they have to be unless it makes the riddle more fun for the completer. You should be suspicious if you see a quartet or larger though, because that could have been split up into more than one group, so it must be relevant to the gimmick<br>
+
+The following restrictions still apply: 
+<div class="rule"><b>• You are not allowed to use online word-lookup tools (such as Nutrimatic or Onelook).<br>
+• You are not allowed to use Google or other search engines</b></div>
+  `
+
+
+
+canvas = document.getElementById ('gameCanvas' );
+ctx = canvas.getContext ('2d' );
+
 
 rad = 10;
 words = [
-{x: 180, y: 150, ans: "anarchy", clue: "What \"A\" means, when in a circle."}, 
-{x: 240, y: 125, ans: "good", clue: "What \"B\" means, on a trancript."}, 
-{x: 300, y: 100, ans: "copyright", clue: "What \"C\" means, when in a circle."}, 
-{x: 360, y: 125, ans: "democrat", clue: "What \"D\" means, in US politics."}, 
-{x: 420, y: 150, ans: "ecstasy", clue: "What \"E\" means, when on the street."}, 
+{x: 180, y: 150, ans: "anarchy", u:"1505222", clue: "What \"A\" means, when in a circle."}, 
+{x: 240, y: 125, ans: "good", u:"1451", clue: "What \"B\" means, on a trancript."}, 
+{x: 300, y: 100, ans: "copyright", u:"251151128", clue: "What \"C\" means, when in a circle."}, 
+{x: 360, y: 125, ans: "democrat", u:"11143428", clue: "What \"D\" means, in US politics."}, 
+{x: 420, y: 150, ans: "ecstasy", u:"2347252", clue: "What \"E\" means, when on the street."}, 
 
-{x: 170, y: 225, ans: "full", clue: "What \"F\" means, when on the road."}, 
-{x: 235, y: 212, ans: "generation", clue: "What \"G\" means, in technology."}, 
-{x: 300, y: 200, ans: "hospital", clue: "What \"H\" means, on a sign."}, 
-{x: 365, y: 212, ans: "jack", clue: "What \"I\" means, when I say it."}, 
-{x: 430, y: 225, ans: "jack", clue: "What \"J\" means, on a card."}, 
+{x: 170, y: 225, ans: "full", u:"1212",clue: "What \"F\" means, when on the road."}, 
+{x: 235, y: 212, ans: "generation", u:"2241408135",clue: "What \"G\" means, in technology."}, 
+{x: 300, y: 200, ans: "hospital", u:"13522711",clue: "What \"H\" means, on a sign."}, 
+{x: 365, y: 212, ans: "jack", u:"1341",clue: "What \"I\" means, when I say it."}, 
+{x: 430, y: 225, ans: "jack", u:"1341",clue: "What \"J\" means, on a card."}, 
 
-{x: 160, y: 300, ans: "kappa", clue: "What \"K\" means, in Greece."}, 
-{x: 230, y: 300, ans: "fifty", clue: "What \"L\" means, in Rome."}, 
-{x: 300, y: 300, ans: "mile", clue: "What \"M\" means, on a map."}, 
-{x: 370, y: 300, ans: "north", clue: "What \"N\" means, on a map."}, 
-{x: 440, y: 300, ans: "hug", clue: "What \"O\" means, on a card."}, 
+{x: 160, y: 300, ans: "kappa", u:"14125",clue: "What \"K\" means, in Greece."}, 
+{x: 230, y: 300, ans: "fifty", u:"13151",clue: "What \"L\" means, in Rome."}, 
+{x: 300, y: 300, ans: "mile", u:"1223",clue: "What \"M\" means, on a map."}, 
+{x: 370, y: 300, ans: "north", u:"43461",clue: "What \"N\" means, on a map."}, 
+{x: 440, y: 300, ans: "hug", u:"112",clue: "What \"O\" means, on a card."}, 
 
-{x: 170, y: 375, ans: "quiet", clue: "What \"P\" means (in English), to a musician."}, 
-{x: 235, y: 387, ans: "quarter", clue: "What \"Q\" means, when followed by a number."}, 
-{x: 300, y: 400, ans: "restricted", clue: "What \"R\" means, at a theater."}, 
-{x: 365, y: 387, ans: "small", clue: "What \"S\" means, at a store."}, 
-{x: 430, y: 375, ans: "teaspoon", clue: "What \"T\" means, in a recipe."}, 
+{x: 170, y: 375, ans: "quiet", u:"12453",clue: "What \"P\" means (in English), to a musician."}, 
+{x: 235, y: 387, ans: "quarter", u:"1143452",clue: "What \"Q\" means, when followed by a number."}, 
+{x: 300, y: 400, ans: "restricted", u:"2434335532",clue: "What \"R\" means, at a theater."}, 
+{x: 365, y: 387, ans: "small", u:"41534",clue: "What \"S\" means, at a store."}, 
+{x: 430, y: 375, ans: "teaspoon", u:"65621122",clue: "What \"T\" means, in a recipe."}, 
 
-{x: 180, y: 450, ans: "university", clue: "What \"U\" means, in many acronyms."}, 
-{x: 240, y: 475, ans: "volt", clue: "What \"V\" means, to a scientist."}, 
-{x: 300, y: 500, ans: "tungsten", clue: "What \"W\" means, to a different scientist."}, 
-{x: 360, y: 475, ans: "close", clue: "What \"X\" means, on a window."}, 
-{x: 420, y: 450, ans: "and", clue: "What \"Y\" means, to Spanish speakers."}, 
+{x: 180, y: 450, ans: "university", u:"3341813531",clue: "What \"U\" means, in many acronyms."}, 
+{x: 240, y: 475, ans: "volt", u:"1232",clue: "What \"V\" means, to a scientist."}, 
+{x: 300, y: 500, ans: "tungsten", u:"13131273",clue: "What \"W\" means, to a different scientist."}, 
+{x: 360, y: 475, ans: "close", u:"54127",clue: "What \"X\" means, on a window."}, 
+{x: 420, y: 450, ans: "and", u:"622",clue: "What \"Y\" means, to Spanish speakers."}, 
 
-{x: 300, y: 600, ans: "integers", clue: "What \"Z\" means, to mathematicians."}, 
+{x: 300, y: 600, ans: "integers", u:"51183711",clue: "What \"Z\" means, to mathematicians."}, 
 
 ]
 
-words.forEach(w => {w.sz = w.ans.length; w.x *= 6; w.x -= 700; w.x -= (w.sz+1)*3.5*rad/2})
+words.forEach(w => {w.sz = w.ans.length; w.x *= 6; w.x -= 700; w.x -= (w.sz+1)*3.5*rad/2;}  )
+
 
 
 
@@ -5628,11 +5781,12 @@ all = words.map(w => {
 
                 return;
             }
-            z[i-offset] = {x: w.x + i*rad*3, y: w.y, w:z, i:i-offset, a:w.ans[i],}
+            z[i-offset] = {x: w.x + i*rad*3, y: w.y, w:z, i:i-offset, a:w.ans[i], b:w.u[i], p:[]}
             lets[w.ans[i]].push(z[i-offset]);
         })
         z.length = z.length-offset
         z.clue = w.clue
+        z.x = w.x
         z.ang = w.ang
         return z;
 })
@@ -5644,13 +5798,13 @@ distance = (a, b, c, d) => {return Math.sqrt((a-c)*(a-c) + (b-d)*(b-d))};
 
 
 heuristicdistance = (a, b) => {
-    if(a.w == b.w) return 100000;
+    if(Math.abs(a.w.y - b.w.y)==100) return 0;
     
-    else return distance(a.x, a.y, b.x, b.y)
+    else return 1
 }
 
 function tryrepair(a, b, c, d){
-    if(heuristicdistance(a, b) + heuristicdistance(c, d) > heuristicdistance(a, c) + heuristicdistance(b, d)){
+      if(heuristicdistance(a, b) + heuristicdistance(c, d) > heuristicdistance(a, c) + heuristicdistance(b, d)){
         a.p = c;
         c.p = a;
         b.p = d;
@@ -5664,60 +5818,56 @@ function tryrepair(a, b, c, d){
         c.p = b;
         return;
     }
+   
 }
 
 for(i=97; i<=122; i++){
     lest = lets[String.fromCharCode(i)];
-    for(j=0; j<lest.length; j+=2){
-        if(j == lest.length-1){
-            lest[j].p = lest[j];
-            continue;
-        }
-        lest[j].p = lest[j+1]
-        lest[j+1].p = lest[j];
-    }
+    for(j of lest){
+        for(k of lest){
 
-    for(j = 0; j< 300; j++){
-        for(k=0; k<lest.length; k++){
-            for(l=k+1; l<lest.length; l++){
-                if(lest[k].p == lest[l]) continue;
-                tryrepair(lest[k], lest[k].p, lest[l], lest[l].p)
+            if((k != j) && k.ans == j.ans && k.b == j.b){
+               k.p.push(j)
+               j.p.push(k)
             }
         }
     }
 
+   
+
 }
 
-selected = {};
+selected = {p:[]};
 offset = [0,0]
 
 
 
 drawmore = true;
 
-draw = () => {
+draw=()=>{
     camzoom = Math.min(canvas.height/1200, canvas.width / 1200);
     if(!drawmore) return;
 
     ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0,0,canvas.width,canvas.height)
+    ctx.fillRect(0,0,camzoom*4000,camzoom*4000)
 
 
     all.forEach(word => { word.forEach(letter => {
-        ctx.strokeStyle = "#ffffff";
-        if(letter == selected || letter.p == selected){
-            ctx.strokeStyle = "#bbbbff"
-        }
-         
-         else if(letter.w == selected.w || letter.p.w == selected.w ){
+        for(p of letter.p){
             ctx.strokeStyle = "#f4f4ff"
+            if(letter == selected ){
+                ctx.strokeStyle = "#bbbbff"
+            }
+             
+             else if(letter.w == selected.w  ){
+                ctx.strokeStyle = "#f4f4ff"
+            }
+            else return;      
+            ctx.beginPath();
+            ctx.moveTo(camzoom*camerazoom * (letter.x+camera[0]), camzoom*camerazoom * (letter.y+camera[1])); 
+            ctx.lineTo(camzoom*camerazoom * (p.x+camera[0]), camzoom*camerazoom * (p.y+camera[1])); 
+            ctx.stroke();
         }
-        else return;
-     
-        ctx.beginPath();
-        ctx.moveTo(camzoom * camerazoom * (letter.x+camera[0]), camzoom *camerazoom * (letter.y+camera[1])); 
-        ctx.lineTo(camzoom *camerazoom * (letter.p.x+camera[0]), camzoom *camerazoom * (letter.p.y+camera[1])); 
-        ctx.stroke();
     })})
 
     all.forEach(word => { word.forEach(letter => {
@@ -5727,36 +5877,39 @@ draw = () => {
         if(word == selected.w){
             ctx.strokeStyle = "#008800"
         }
+         if(selected.p.includes(letter)){
+            ctx.strokeStyle = "#ff8888"
+        }
         if(letter == selected){
             ctx.strokeStyle = "#ff0000"
         }
     
         ctx.beginPath();
-        ctx.arc(camzoom *camerazoom * (letter.x+camera[0]), camzoom *camerazoom * (letter.y+camera[1]), camzoom *camerazoom * (rad + 1), 0, 2 * Math.PI);
-        ctx.lineWidth = camzoom *camerazoom * 2;
+        ctx.arc(camzoom*camerazoom * (letter.x+camera[0]), camzoom*camerazoom * (letter.y+camera[1]), camzoom*camerazoom * (rad + 1), 0, 2 * Math.PI);
+        ctx.lineWidth = camzoom*camerazoom * 2;
          
         ctx.stroke();
 
         if(letter.l){
-            ctx.font = "bold " + camzoom *camerazoom * 15 + "px monospace";
+            ctx.font = "bold " + camzoom*camerazoom * 15 + "px monospace";
 
             ctx.fillStyle = "#333333"
-            ctx.fillText(letter.l, camzoom *camerazoom *(letter.x-rad/4+camera[0]), camzoom *camerazoom * (letter.y+rad/4+camera[1]))
+            ctx.fillText(letter.l, camzoom*camerazoom *(letter.x-rad/4+camera[0]), camzoom*camerazoom * (letter.y+rad/4+camera[1]))
         }
 
         if(letter == selected){
 
         }
             ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0,0,camzoom *2000,camzoom *50)
+    ctx.fillRect(0,0,camzoom*4000,camzoom*50)
                 ctx.fillStyle = "#115511";
-    ctx.fillRect(0,camzoom *47,camzoom *2000,camzoom *3)
+    ctx.fillRect(0,camzoom*47,camzoom*4000,camzoom*3)
 
         ctx.fillStyle = "#115511";
-            ctx.font = "bold " + 25 * camzoom  + "px monospace";
+            ctx.font = "bold "+camzoom*25+"px monospace";
 
             if(selected.w) {
-                ctx.fillText(selected.w.clue, camzoom *5, camzoom *30)
+                ctx.fillText(selected.w.clue, camzoom*5, camzoom*30)
             }
 
 
@@ -5768,7 +5921,6 @@ draw = () => {
     checkwin();
 
 }
-
 
 
 function getPixel(img, x, y) {
@@ -5789,15 +5941,17 @@ function checkwin(){
             if(!letter.l || letter.l != letter.a) won = false;
         })
     })
-    if(won) complete();
+    if(won) win();
+}
+
+function win(){
+    complete()
 }
 
 
-
-
 canvas.onclick = e=>{
-    clickx = (e.offsetX / camerazoom/camzoom) - camera[0];
-    clicky = (e.offsetY / camerazoom/camzoom) - camera[1];
+    clickx = (e.offsetX /camzoom/ camerazoom) - camera[0];
+    clicky = (e.offsetY /camzoom/ camerazoom) - camera[1];
 
     closest = {x:-1, y:-1}
   all.forEach(word => { word.forEach(letter => {
@@ -5811,7 +5965,8 @@ canvas.onclick = e=>{
 
 function type(key){
     selected.l = key;
-    selected.p.l = key;
+        for(p of selected.p) p.l = key;
+
     if(selected.w[selected.i+1]) selected = selected.w[selected.i+1]
     draw();
 }
@@ -5819,24 +5974,25 @@ function type(key){
 function untype(){
     if(selected.l){
         selected.l = undefined;
-        selected.p.l = undefined;
+        for(p of selected.p) p.l = undefined;
         if(selected.w[selected.i-1]) selected = selected.w[selected.i-1]
     }
     else{
         if(selected.w[selected.i-1]) selected = selected.w[selected.i-1]
         selected.l = undefined;
-        selected.p.l = undefined;
+        for(p of selected.p) p.l = undefined;
     }
     draw();
     
 }
 
 camerazoom = 0.8;
-camera = [-60,400]
+camera = [-35,400]
 mousedown = false;
 
-window.onwheel = e => {
-    if(e.deltaY > 0){
+canvas.onwheel = e => {
+        e.preventDefault();
+    if(e.deltaY < 0){
         camerazoom += .1;
     }else{
         camerazoom -= .1;
@@ -5895,9 +6051,19 @@ window.onkeydown = e => {
 
 }
 function nexus3 () {
+
+    div.innerHTML = `
+<br>&nbsp;&nbsp;&nbsp;&nbsp;Another reason letter webs are liked is that they are very versatile. There are a lot of ways of manipulating the format by having specific types of connections. You could have a bunch of small entries all connected to one large entry, you could have two rows of lines, which contain the same letters but spaced differently (e.g. one row having the words "dog" and "mason" and the other having "dogma" and "son"). There are tons of possible ways of making letter webs feel like a unique type of ridle based on the words a creator picks and the way they connect the bubbles, so it can feel unique each time.
+ <br>&nbsp;&nbsp;&nbsp;&nbsp; Riddle searches also use letter webs so often, that there are a lot of gimmicks that have been explored. Like bubbles in the riddle connecting to bubbles in a hint, or bubbles with numbers and mathematical operations inside them. If you keep doing riddle searches, you'll get used to the conventions and types of places you might expect to see a letter web pop up. <br>
+
+ The following restrictions still apply: 
+<div class="rule"><b>• You are not allowed to use online word-lookup tools (such as Nutrimatic or Onelook).<br>
+• You are not allowed to use Google or other search engines</b></div>
+  `
+
     rad = 10;
 words = [
-{x: 200, y: 0, ans: "first", u:"11111", clue: "Position you'd have to come in to stand on the top of a podium, and a sensical word to begin this puzzle with."}, 
+{x: 200, y: 0, ans: "first", u:"11111", clue: "Position you'd have to come in to stand on the top of a podium, and a sensical word to begin this riddle with."}, 
 {x: 200, y: 100, ans: "first class", u:"11111 22223", clue: "Place you may find comfortable seats, all facing the same direction."}, 
 {x: 200, y: 200, ans: "classroom", u:"222233323", clue: "Place you may find uncomfortable seats, all facing the same direction."}, 
 {x: 200, y: 300, ans: "room service", u:"3323 4444441", clue: "?"}, 
@@ -6156,7 +6322,8 @@ camerazoom = 0.3;
 camera = [1500,2200]
 mousedown = false;
 
-window.onwheel = e => {
+canvas.onwheel = e => {
+        e.preventDefault();
     if(e.deltaY < 0){
         camerazoom += .1;
     }else{
@@ -6215,6 +6382,14 @@ window.onkeydown = e => {
 }
 }
 function nexus4 () {
+
+
+        div.innerHTML = `
+<br>&nbsp;&nbsp;&nbsp;&nbsp;Here's an example of a letter web with just one hint! The line has been separated into multiple lines to make it easier to see the connections.<br>
+ The following restrictions still apply: 
+<div class="rule"><b>• You are not allowed to use online word-lookup tools (such as Nutrimatic or Onelook).<br>
+• You are not allowed to use Google or other search engines</b></div>
+  `
 canvas = document.getElementById ('gameCanvas' );
 ctx = canvas.getContext ('2d' );
 
@@ -6490,7 +6665,8 @@ function untype(){
     
 }
 
-window.onwheel = e => {
+canvas.onwheel = e => {
+        e.preventDefault();
     if(e.deltaY < 0){
         camerazoom += .1;
     }else{
@@ -6593,7 +6769,7 @@ function magic () {
 function divide1 () {
     div.innerHTML = `
     <br><br>&nbsp;&nbsp;&nbsp;&nbsp; Early on, I said that "you won't need information from one riddle to complete another, and once you're finished with a riddle, you won't need anything from it." This isn't actually entirely true, though there's some truth to it.
-    <br><br>&nbsp;&nbsp;&nbsp;&nbsp; Knowledge you get over the course of a riddle can be divided into "general knowledge", and "specific knowledge". General knowledge refers to the concepts used in a riddle, the rules you need to learn to complete it. Specific knowledge, on the other hand, refers to things like a specific riddle's code, or it's exact layout or wording choices. A very rough rule of thumb is, stuff you're likely to remember an hour after solving a riddle is general knowledge, and things you're more likely to forget are specific knowledge. (So, if a riddle has some random string of digits or colors, that's something you'll probably forget after doing the riddle, so it's specific knowledge, but you're likely to still remember what you did to complete the riddle, so that's general.)
+    <br><br>&nbsp;&nbsp;&nbsp;&nbsp; Knowledge you get over the course of a riddle can be divided into "general knowledge", and "specific knowledge". General knowledge refers to the concepts used in a riddle, the rules you need to learn to complete it. Specific knowledge, on the other hand, refers to things like a specific riddle's code, or it's exact layout or wording choices. A very rough rule of thumb is, stuff you're likely to remember an hour after completing a riddle is general knowledge, and things you're more likely to forget are specific knowledge. (So, if a riddle has some random string of digits or colors, that's something you'll probably forget after doing the riddle, so it's specific knowledge, but you're likely to still remember what you did to complete the riddle, so that's general.)
      <br><br>&nbsp;&nbsp;&nbsp;&nbsp; So when I say "you won't need information from one riddle to complete another", I'm actually just referring to specific information. You'll never need to copy down codes, or keep track of the exact pieces from prior riddles, but you may need earlier riddles to gain an understanding of the system used in later riddles. Sometimes the rules in early riddles are exactly the same as later riddles, sometimes they are similar but iterated upon, and sometimes they change completely. There's no exact rule about how consistent riddles within a sequence have to be with each other, but you can often intuit how riddles may be related to each other based on looks.
     `;
     start = {x:-100, y:400, col:"#222222"}
@@ -6609,6 +6785,7 @@ function divide1 () {
 function divide2 () {
     div.innerHTML = `
     <br><br>&nbsp;&nbsp;&nbsp;&nbsp; In this riddle search, there's mostly been an inverse correlation with the size of a sequence and the size of the riddles within, though that's not always true. In other riddle searches, sometimes a short sequence has short riddles, and sometimes a long sequence has long riddles. Sometimes sequences have some short riddles and some long riddles, there's really no restrictions.
+    <br><br>&nbsp;&nbsp;&nbsp;&nbsp; By the way, for the riddles in this sequence that use colors, like this one, you can press C to toggle a number on each colored circle.
     `;
 
     start = {x:-100, y:400, col:"#222222"}
@@ -6825,8 +7002,8 @@ function divide14(){
     div.innerHTML = `
     
     `;
-    start = {x:700, y:300, col:"#222222", ang:0}
-end = {x:500, y:600, col:"#222222", ang:180}
+    start = {x:300, y:300, col:"#222222", ang:0}
+end = {x:800, y:600, col:"#222222", ang:180}
 balls = [start, end,  
     {x:200, y:150, v:0}, 
     {x:900, y:150,}, 
@@ -6939,8 +7116,12 @@ function itspolygontime(){
         ball.firsthit = hits[0]
         a = "R"
         b = "L"
+
         if(path[hits[0]].cw){
             [a, b] = [b, a];
+            if(ball == end && hits.length > 1){
+                [a, b] = [b, a];
+            }
         }
         edges[[hits[0], a]] = [(hits[0] + 1) , a];
         [a, b] = [b, a];
@@ -6952,6 +7133,8 @@ function itspolygontime(){
         edges[[hits[hits.length-1],a]] = [(hits[hits.length-1] + 1),a];
 
      })
+
+     console.log(structuredClone(edges));
 
      for(a of ["L", "R"]){
          for(i=0; i<path.length-1; i++){
@@ -7537,6 +7720,7 @@ function moveto(nw){
 
     if(!ok){
         [path, balls, start, end] = structuredClone(savestate);
+        return false;
     }
 
     //path[path.length-1] =  {o: nw}
@@ -7559,12 +7743,13 @@ canvas.onmousemove = e => {
             }
              
         }else{
-            if(distance(end.x, end.y, e.offsetX/camzoom, e.offsetY/camzoom) < 5){
+            
+            moveto({x: e.offsetX/camzoom, y: e.offsetY/camzoom})
+            if(distance(end.x, end.y, path[path.length-1].o.x, path[path.length-1].o.y) < 20){
                 pathstarted = false;
                 //checkvalid
                 path[path.length-1] = {o: end}
             }
-            moveto({x: e.offsetX/camzoom, y: e.offsetY/camzoom})
             draw(true);
         }
     }
